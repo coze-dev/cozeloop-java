@@ -1,6 +1,3 @@
-// Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-// SPDX-License-Identifier: MIT
-
 package com.coze.loop.http;
 
 import com.coze.loop.auth.Auth;

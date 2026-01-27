@@ -29,7 +29,7 @@
         <opentelemetry.version>1.34.1</opentelemetry.version>
         <okhttp.version>4.12.0</okhttp.version>
         <jackson.version>2.16.1</jackson.version>
-        <caffeine.version>3.1.8</caffeine.version>
+        <caffeine.version>2.9.3</caffeine.version>
         <commons-text.version>1.11.0</commons-text.version>
         <jinjava.version>2.7.1</jinjava.version>
         <jjwt.version>0.12.5</jjwt.version>
@@ -37,8 +37,9 @@
         <spring-boot.version>2.7.18</spring-boot.version>
         
         <!-- Test dependency versions -->
-        <junit.version>5.10.1</junit.version>
-        <mockito.version>5.8.0</mockito.version>
+        <junit.version>5.9.3</junit.version>
+        <junit-platform.version>1.9.3</junit-platform.version>
+        <mockito.version>4.11.0</mockito.version>
         <assertj.version>3.25.1</assertj.version>
         
         <!-- Plugin versions -->
@@ -68,6 +69,20 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-commons</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-engine</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             
             <!-- HTTP Client -->
@@ -144,6 +159,36 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-commons</artifactId>
+                <version>${junit-platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-engine</artifactId>
+                <version>${junit-platform.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
