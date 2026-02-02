@@ -107,18 +107,18 @@ class CozeLoopFullIntegrationTest {
      */
     static class FullTestService {
 
-        @CozeTrace(value = "process-method", spanType = "custom", 
+        @CozeTrace(name = "process-method", spanType = "custom",
                   captureArgs = true, captureReturn = true)
         public String processWithTrace(String input) {
             return "processed: " + input;
         }
 
-        @CozeTrace(value = "error-method", spanType = "custom")
+        @CozeTrace(name = "error-method", spanType = "custom")
         public String processWithError(String input) {
             throw new RuntimeException("test error: " + input);
         }
 
-        @CozeTrace(value = "#{'spel_' + #args[0] + '_' + #args[1]}", 
+        @CozeTrace(name = "#{'spel_' + #args[0] + '_' + #args[1]}",
                   spanType = "llm",
                   inputExpression = "#args[0]",
                   outputExpression = "#result")
@@ -126,7 +126,7 @@ class CozeLoopFullIntegrationTest {
             return "spel-result: " + value + "-" + number;
         }
 
-        @CozeTrace(value = "multi-arg-method", captureArgs = true)
+        @CozeTrace(name = "multi-arg-method", captureArgs = true)
         public String processMultipleArgs(String arg1, int arg2, boolean arg3) {
             return "multi: " + arg1 + "-" + arg2 + "-" + arg3;
         }

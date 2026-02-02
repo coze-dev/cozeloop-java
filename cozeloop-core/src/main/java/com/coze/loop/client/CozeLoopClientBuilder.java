@@ -7,6 +7,7 @@ import com.coze.loop.config.CozeLoopConfig;
 import com.coze.loop.exception.CozeLoopException;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.http.HttpClient;
+import com.coze.loop.internal.ConfigUtils;
 import com.coze.loop.internal.ValidationUtils;
 import com.coze.loop.prompt.PromptProvider;
 import com.coze.loop.trace.CozeLoopTracerProvider;
@@ -20,6 +21,27 @@ public class CozeLoopClientBuilder {
     
     public CozeLoopClientBuilder() {
         this.config = CozeLoopConfig.builder().build();
+        loadByProperties();
+    }
+
+    private void loadByProperties() {
+        // Load workspace ID
+        String workspaceId = ConfigUtils.get("cozeloop.workspace-id");
+        if (workspaceId != null) {
+            this.config.setWorkspaceId(workspaceId);
+        }
+
+        // Load service name
+        String serviceName = ConfigUtils.get("cozeloop.service-name");
+        if (serviceName != null) {
+            this.config.setServiceName(serviceName);
+        }
+
+        // Load auth token
+        String token = ConfigUtils.get("cozeloop.auth.token");
+        if (token != null) {
+            this.tokenAuth(token);
+        }
     }
     
     /**
@@ -112,18 +134,24 @@ public class CozeLoopClientBuilder {
         ValidationUtils.requireNonNull(auth, "auth");
         
         try {
-            // Create HTTP client
-            HttpClient httpClient = new HttpClient(auth, config.getHttpConfig());
-            
-            // Create TracerProvider
+            // Create TracerProvider using OTLP/HTTP exporter
             CozeLoopTracerProvider tracerProvider = CozeLoopTracerProvider.create(
-                httpClient,
+                    auth,
                 config.getSpanEndpoint(),
-                config.getFileEndpoint(),
                 config.getWorkspaceId(),
                 config.getServiceName(),
                 config.getTraceConfig()
             );
+            
+            // Create HTTP client with trace propagators
+            HttpClient httpClient = new HttpClient(auth, config.getHttpConfig(), tracerProvider.getPropagators());
+            
+            // Configure JWT auth if used
+            if (auth instanceof JWTOAuthAuth) {
+                JWTOAuthAuth jwtAuth = (JWTOAuthAuth) auth;
+                jwtAuth.setBaseUrl(config.getBaseUrl());
+                jwtAuth.setHttpClient(new HttpClient(null, config.getHttpConfig(), tracerProvider.getPropagators()));
+            }
             
             // Create PromptProvider
             PromptProvider promptProvider = new PromptProvider(

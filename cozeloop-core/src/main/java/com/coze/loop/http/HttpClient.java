@@ -4,6 +4,7 @@ import com.coze.loop.auth.Auth;
 import com.coze.loop.exception.CozeLoopException;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.internal.JsonUtils;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ public class HttpClient {
     
     private final OkHttpClient okHttpClient;
     private final Auth auth;
+    private final ContextPropagators propagators;
     
     /**
      * Create an HttpClient with default configuration.
@@ -27,7 +29,7 @@ public class HttpClient {
      * @param auth the authentication provider
      */
     public HttpClient(Auth auth) {
-        this(auth, new HttpConfig());
+        this(auth, new HttpConfig(), null);
     }
     
     /**
@@ -37,7 +39,19 @@ public class HttpClient {
      * @param config the HTTP configuration
      */
     public HttpClient(Auth auth, HttpConfig config) {
+        this(auth, config, null);
+    }
+
+    /**
+     * Create an HttpClient with custom configuration and trace propagators.
+     *
+     * @param auth the authentication provider
+     * @param config the HTTP configuration
+     * @param propagators the trace context propagators
+     */
+    public HttpClient(Auth auth, HttpConfig config, ContextPropagators propagators) {
         this.auth = auth;
+        this.propagators = propagators;
         this.okHttpClient = buildOkHttpClient(config);
     }
     
@@ -56,7 +70,9 @@ public class HttpClient {
             .retryOnConnectionFailure(true);
         
         // Add interceptors
-        builder.addInterceptor(new AuthInterceptor(auth));
+        if (auth != null) {
+            builder.addInterceptor(new AuthInterceptor(auth, propagators));
+        }
         builder.addInterceptor(new RetryInterceptor(config.getMaxRetries()));
         
         if (logger.isDebugEnabled()) {
@@ -89,15 +105,30 @@ public class HttpClient {
      * @return response body as string
      */
     public String post(String url, Object body) {
+        return post(url, body, null);
+    }
+    
+    /**
+     * Execute a POST request with JSON body and custom headers.
+     *
+     * @param url the URL
+     * @param body the request body object
+     * @param headers custom headers
+     * @return response body as string
+     */
+    public String post(String url, Object body, java.util.Map<String, String> headers) {
         String json = JsonUtils.toJson(body);
         RequestBody requestBody = RequestBody.create(json, JSON_MEDIA_TYPE);
         
-        Request request = new Request.Builder()
+        Request.Builder builder = new Request.Builder()
             .url(url)
-            .post(requestBody)
-            .build();
+            .post(requestBody);
         
-        return execute(request);
+        if (headers != null) {
+            headers.forEach(builder::header);
+        }
+        
+        return execute(builder.build());
     }
     
     /**

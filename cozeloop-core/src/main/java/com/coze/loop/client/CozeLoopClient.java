@@ -8,6 +8,7 @@ import com.coze.loop.prompt.GetPromptParam;
 import com.coze.loop.stream.StreamReader;
 import com.coze.loop.trace.CozeLoopSpan;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,7 @@ public interface CozeLoopClient extends AutoCloseable {
      * @return the span wrapper
      */
     CozeLoopSpan startSpan(String name);
-    
+
     /**
      * Start a new span with specified type.
      *
@@ -36,6 +37,40 @@ public interface CozeLoopClient extends AutoCloseable {
      * @return the span wrapper
      */
     CozeLoopSpan startSpan(String name, String spanType);
+
+    CozeLoopSpan startSpan(String name, String spanType, String scene);
+
+    /**
+     * Start a new span with specified type.
+     *
+     * @param name the span name
+     * @param spanType the span type (e.g., "llm", "tool", "custom")
+     * @return the span wrapper
+     */
+    CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan);
+
+    CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan, String scene);
+
+    /**
+     * Start a new span with specified type and parent context.
+     * Useful for cross-service tracing where you have an extracted Context.
+     *
+     * @param name the span name
+     * @param spanType the span type
+     * @param parentContext the parent context
+     * @return the span wrapper
+     */
+    CozeLoopSpan startSpan(String name, String spanType, Context parentContext);
+
+    CozeLoopSpan startSpan(String name, String spanType, Context parentContext, String scene);
+
+    /**
+     * Extract context from headers for cross-service propagation.
+     *
+     * @param headers the map of headers (e.g. from an incoming HTTP request)
+     * @return the extracted context
+     */
+    Context extractContext(Map<String, String> headers);
     
     /**
      * Get the underlying OpenTelemetry Tracer.
@@ -103,6 +138,11 @@ public interface CozeLoopClient extends AutoCloseable {
      * @return workspace ID
      */
     String getWorkspaceId();
+
+    /**
+     * Flush all pending spans to the backend.
+     */
+    void flush();
     
     /**
      * Shutdown the client and release resources.

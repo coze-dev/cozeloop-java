@@ -75,14 +75,7 @@ public class CozeLoopConfig {
      * Get span endpoint URL.
      */
     public String getSpanEndpoint() {
-        return baseUrl + "/v1/loop/traces/ingest";
-    }
-    
-    /**
-     * Get file endpoint URL.
-     */
-    public String getFileEndpoint() {
-        return baseUrl + "/v1/loop/files/upload";
+        return baseUrl + "/v1/loop/opentelemetry/v1/traces";
     }
     
     /**

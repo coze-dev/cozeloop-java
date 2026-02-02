@@ -86,12 +86,12 @@ class CozeLoopSpringBootIntegrationTest {
      */
     static class TestService {
 
-        @CozeTrace(value = "test-method", spanType = "custom", captureArgs = true, captureReturn = true)
+        @CozeTrace(name = "test-method", spanType = "custom", captureArgs = true, captureReturn = true)
         public String tracedMethod(String input) {
             return "result: " + input;
         }
 
-        @CozeTrace(value = "#{'span_' + #args[0]}", spanType = "llm")
+        @CozeTrace(name = "#{'span_' + #args[0]}", spanType = "llm")
         public String tracedMethodWithSpel(String input) {
             return "spel-result: " + input;
         }

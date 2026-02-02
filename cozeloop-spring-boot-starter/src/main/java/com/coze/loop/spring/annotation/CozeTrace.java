@@ -17,7 +17,7 @@ public @interface CozeTrace {
      *
      * @return span name or SpEL expression
      */
-    String value() default "";
+    String name() default "";
     
     /**
      * Span type (e.g., "llm", "tool", "custom").

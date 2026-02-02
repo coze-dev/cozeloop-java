@@ -1,5 +1,6 @@
 package com.coze.loop.prompt;
 
+import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.entity.ContentPart;
 import com.coze.loop.entity.ExecuteParam;
 import com.coze.loop.entity.ExecuteResult;
@@ -9,12 +10,15 @@ import com.coze.loop.entity.TokenUsage;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.exception.PromptException;
 import com.coze.loop.http.HttpClient;
+import com.coze.loop.internal.Constants;
 import com.coze.loop.internal.JsonUtils;
 import com.coze.loop.internal.ValidationUtils;
+import com.coze.loop.spec.tracespec.SpanValues;
 import com.coze.loop.stream.SSEDecoder;
 import com.coze.loop.stream.SSEParser;
 import com.coze.loop.stream.ServerSentEvent;
 import com.coze.loop.stream.StreamReader;
+import com.coze.loop.trace.CozeLoopSpan;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
@@ -39,6 +43,8 @@ public class PromptProvider {
     private final String workspaceId;
     private final PromptCache cache;
     private final PromptFormatter formatter;
+    private CozeLoopClient client;
+    
     // Map cacheKey to GetPromptParam for fetching from server
     private final Map<String, GetPromptParam> paramMap = new ConcurrentHashMap<>();
     // Singleflight map for preventing duplicate requests
@@ -67,6 +73,15 @@ public class PromptProvider {
         // Initialize cache with this provider as the loader
         this.cache = new PromptCache(cacheConfig, this::fetchPromptFromServer);
     }
+
+    /**
+     * Set the client for tracing.
+     *
+     * @param client the client
+     */
+    public void setClient(CozeLoopClient client) {
+        this.client = client;
+    }
     
     /**
      * Get a prompt (with caching).
@@ -77,26 +92,52 @@ public class PromptProvider {
     public Prompt getPrompt(GetPromptParam param) {
         ValidationUtils.requireNonEmpty(param.getPromptKey(), "promptKey");
         
-        String cacheKey = buildCacheKey(param);
-        
-        // Store param mapping for fetchPromptFromServer to use
-        paramMap.put(cacheKey, param);
+        CozeLoopSpan span = null;
+        if (client != null) {
+            span = client.startSpan("PromptHub", "prompt_hub", SpanValues.V_SCENE_PROMPT_HUB);
+        }
         
         try {
+            String cacheKey = buildCacheKey(param);
+            
+            // Store param mapping for fetchPromptFromServer to use
+            paramMap.put(cacheKey, param);
+            
             Prompt prompt = cache.getSync(cacheKey);
             if (prompt == null) {
                 throw new PromptException(ErrorCode.PROMPT_NOT_FOUND,
                     "Failed to get prompt: " + param.getPromptKey() + ". Cache returned null.");
             }
+            
+            if (span != null) {
+                span.setTag("prompt_key", param.getPromptKey());
+                span.setTag("prompt_version", prompt.getVersion());
+
+                Map<String, Object> input = new HashMap<>();
+                input.put("prompt_key", param.getPromptKey());
+                input.put("prompt_version", param.getVersion());
+                input.put("prompt_label", param.getLabel());
+                span.setInput(JsonUtils.toJson(input));
+
+                span.setOutput(JsonUtils.toJson(prompt));
+            }
+            
             return prompt;
         } catch (PromptException e) {
+            if (span != null) {
+                span.setError(e);
+            }
             throw e;
         } catch (Exception e) {
+            if (span != null) {
+                span.setError(e);
+            }
             throw new PromptException(ErrorCode.PROMPT_NOT_FOUND,
                 "Failed to get prompt: " + param.getPromptKey(), e);
         } finally {
-            // Clean up param mapping after use (optional, can keep for cache refresh)
-            // paramMap.remove(cacheKey);
+            if (span != null) {
+                span.finish();
+            }
         }
     }
     
@@ -114,7 +155,39 @@ public class PromptProvider {
             variables = new HashMap<>();
         }
         
-        return formatter.format(prompt, variables);
+        CozeLoopSpan span = null;
+        if (client != null) {
+            span = client.startSpan("PromptTemplate", "prompt", SpanValues.V_SCENE_PROMPT_TEMPLATE);
+        }
+        
+        try {
+            List<Message> result = formatter.format(prompt, variables);
+            
+            if (span != null) {
+                span.setTag("prompt_key", prompt.getPromptKey());
+                span.setTag("prompt_version", prompt.getVersion());
+                
+                Map<String, Object> input = new HashMap<>();
+                if (prompt.getPromptTemplate() != null) {
+                    input.put("messages", prompt.getPromptTemplate().getMessages());
+                }
+                input.put("variables", variables);
+                span.setInput(JsonUtils.toJson(input));
+
+                span.setOutput(JsonUtils.toJson(result));
+            }
+            
+            return result;
+        } catch (Exception e) {
+            if (span != null) {
+                span.setError(e);
+            }
+            throw e;
+        } finally {
+            if (span != null) {
+                span.finish();
+            }
+        }
     }
     
     /**
@@ -155,7 +228,7 @@ public class PromptProvider {
      * @return prompt fetched from server
      */
     private Prompt fetchPromptFromServer(String cacheKey) {
-        logger.info("Fetching prompt from server for cache key: {}", cacheKey);
+//        logger.info("Fetching prompt from server for cache key: {}", cacheKey);
         
         // Get parameters from map
         GetPromptParam param = paramMap.get(cacheKey);
@@ -223,21 +296,16 @@ public class PromptProvider {
             logger.debug("Requesting prompt from server: endpoint={}, body={}", promptEndpoint, requestBody);
             
             // Log request information including headers that will be sent
-            logger.info("=== Request Prompt Details ===");
-            logger.info("URL: {}", promptEndpoint);
-            logger.info("Method: POST");
-            logger.info("Headers:");
-            logger.info("  Content-Type: application/json; charset=utf-8");
-            logger.info("  User-Agent: CozeLoop-Java-SDK/1.0.0");
-            logger.info("  Authorization: [configured by AuthInterceptor - see debug logs for details]");
-            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
-            logger.info("Prompt Key: {}", param.getPromptKey());
-            if (param.getVersion() != null && !param.getVersion().isEmpty()) {
-                logger.info("Version: {}", param.getVersion());
-            }
-            if (param.getLabel() != null && !param.getLabel().isEmpty()) {
-                logger.info("Label: {}", param.getLabel());
-            }
+//            logger.info("=== Request Prompt Details ===");
+//            logger.info("URL: {}", promptEndpoint);
+//            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
+//            logger.info("Prompt Key: {}", param.getPromptKey());
+//            if (param.getVersion() != null && !param.getVersion().isEmpty()) {
+//                logger.info("Version: {}", param.getVersion());
+//            }
+//            if (param.getLabel() != null && !param.getLabel().isEmpty()) {
+//                logger.info("Label: {}", param.getLabel());
+//            }
             
             // Make HTTP request to fetch prompt using mget API
             String response = httpClient.post(promptEndpoint, requestBody);
@@ -247,8 +315,8 @@ public class PromptProvider {
                     "Empty response from server for prompt: " + param.getPromptKey());
             }
             
-            logger.info("=== Response Received ===");
-            logger.debug("Response body: {}", response);
+//            logger.info("=== Response Received ===");
+//            logger.debug("Response body: {}", response);
             
             // Check if response is HTML (likely an error page or redirect)
             String trimmedResponse = response.trim();
@@ -308,7 +376,7 @@ public class PromptProvider {
                                     "Failed to deserialize prompt from response");
                             }
                             
-                            logger.info("Successfully fetched prompt from server: {}", param.getPromptKey());
+//                            logger.info("Successfully fetched prompt from server: {}", param.getPromptKey());
                             return prompt;
                         }
                     }
@@ -379,10 +447,10 @@ public class PromptProvider {
             // Build execute request
             Map<String, Object> requestBody = buildExecuteRequest(param);
             
-            logger.info("=== Execute Prompt Request ===");
-            logger.info("URL: {}", executeEndpoint);
-            logger.info("Method: POST");
-            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
+//            logger.info("=== Execute Prompt Request ===");
+//            logger.info("URL: {}", executeEndpoint);
+//            logger.info("Method: POST");
+//            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
             
             // Make HTTP request
             String response = httpClient.post(executeEndpoint, requestBody);
@@ -392,8 +460,8 @@ public class PromptProvider {
                     "Empty response from server for execute request");
             }
             
-            logger.info("=== Execute Prompt Response ===");
-            logger.debug("Response body: {}", response);
+//            logger.info("=== Execute Prompt Response ===");
+//            logger.debug("Response body: {}", response);
             
             // Parse response
             @SuppressWarnings("unchecked")
@@ -466,10 +534,10 @@ public class PromptProvider {
             // Build execute request
             Map<String, Object> requestBody = buildExecuteRequest(param);
             
-            logger.info("=== Execute Streaming Prompt Request ===");
-            logger.info("URL: {}", executeStreamingEndpoint);
-            logger.info("Method: POST");
-            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
+//            logger.info("=== Execute Streaming Prompt Request ===");
+//            logger.info("URL: {}", executeStreamingEndpoint);
+//            logger.info("Method: POST");
+//            logger.info("Request Body: {}", JsonUtils.toJson(requestBody));
             
             // Make streaming HTTP request
             Response response = httpClient.postStream(executeStreamingEndpoint, requestBody);

@@ -38,7 +38,8 @@ public class PromptHubJinjaExample {
     public static void main(String[] args) {
         String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
         String apiToken = System.getenv("COZELOOP_API_TOKEN");
-        
+        String promptKey = System.getenv("COZELOOP_PROMPT_KEY");
+
         if (workspaceId == null || apiToken == null) {
             System.err.println("请设置环境变量：");
             System.err.println("  COZELOOP_WORKSPACE_ID=your_workspace_id");
@@ -58,7 +59,7 @@ public class PromptHubJinjaExample {
                 
                 // 2. 获取 prompt
                 Prompt prompt = client.getPrompt(GetPromptParam.builder()
-                    .promptKey("prompt_hub_demo")
+                    .promptKey(promptKey)
                     .version("0.0.1") // 如果不指定版本，将获取对应 prompt 的最新版本
                     .build());
                 
@@ -199,13 +200,13 @@ public class PromptHubJinjaExample {
             span.setInput(messages);
             span.setOutput(respChoices);
             span.setModelProvider("openai");
-            span.setModel(modelName);
+            span.setModelName(modelName);
             span.setInputTokens(respPromptTokens);
             span.setOutputTokens(respCompletionTokens);
             
             // 设置首次响应时间
             long firstRespTime = System.currentTimeMillis() * 1000;
-            span.setAttribute("start_time_first_resp", firstRespTime);
+            span.setTag("start_time_first_resp", firstRespTime);
             
             System.out.println("\nLLM 调用完成");
             System.out.println("  输出: " + respChoices[0]);

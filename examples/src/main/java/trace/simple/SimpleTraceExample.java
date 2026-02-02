@@ -2,7 +2,14 @@ package trace.simple;
 
 import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.client.CozeLoopClientBuilder;
+import com.coze.loop.spec.tracespec.ModelChoice;
+import com.coze.loop.spec.tracespec.ModelInput;
+import com.coze.loop.spec.tracespec.ModelMessage;
+import com.coze.loop.spec.tracespec.ModelOutput;
 import com.coze.loop.trace.CozeLoopSpan;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * 简单追踪示例
@@ -40,13 +47,22 @@ public class SimpleTraceExample {
         
         try {
             // 1. 创建根 span
+            // try-with-resources 会自动调用 span.close()，确保追踪信息被正确上报，且关闭scope上下文
             try (CozeLoopSpan rootSpan = client.startSpan("root_span", "main_span")) {
                 // 2. 设置自定义标签
-                rootSpan.setAttribute("mode", "simple");
-                rootSpan.setAttribute("node_id", 6076665L);
-                rootSpan.setAttribute("node_process_duration", 228.6);
-                rootSpan.setAttribute("is_first_node", true);
-                
+                rootSpan.setTag("mode", "simple");
+                rootSpan.setTag("node_id", 6076665L);
+                rootSpan.setTag("node_process_duration", 228.6);
+                rootSpan.setTag("is_first_node", true);
+                rootSpan.setBaggage("prd_id", "7982331211221");
+                rootSpan.setUserIDBaggage("user-123456");
+                rootSpan.setMessageIDBaggage("message-123456");
+                rootSpan.setThreadIDBaggage("thread-123456");
+
+                System.out.println("rootSpan TraceId：" + rootSpan.getTraceID());
+                System.out.println("rootSpan SpanId：" + rootSpan.getSpanID());
+                System.out.println("rootSpan Baggage：" + rootSpan.getBaggage());
+
                 // 3. 调用 LLM
                 boolean success = callLLM(client);
                 
@@ -58,21 +74,15 @@ public class SimpleTraceExample {
                     rootSpan.setStatusCode(0); // 0 表示成功
                 }
             }
-            
-            // 5. （可选）强制刷新，上报所有 traces
-            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
-            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
-            // client.flush(); // 注意：CozeLoopClient 可能没有 flush 方法
-            
             System.out.println("追踪示例执行成功！");
         } catch (Exception e) {
             System.err.println("执行失败：" + e.getMessage());
             e.printStackTrace();
         } finally {
-            // 6. 关闭客户端，执行 flush 并关闭连接
-            // 警告：一旦执行 Close，客户端将不可用，需要通过 NewClient 创建新客户端！
-            // 仅在需要释放资源时使用，例如关闭实例时！
-            client.close();
+            // 5. force flush trace to backend
+            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
+            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
+            client.flush();
         }
     }
     
@@ -81,10 +91,20 @@ public class SimpleTraceExample {
      */
     private static boolean callLLM(CozeLoopClient client) {
         // 创建 LLM 调用的 span
-        try (CozeLoopSpan span = client.startSpan("llmCall", "llm")) {
+        try (CozeLoopSpan span = client.startSpan("llmCall", "model")) {
+            long startTime = System.currentTimeMillis() * 1000;
+
+            // set baggage
+            span.setBaggage("llm_id", "01");
+
+            System.out.println("llmCall TraceID: " + span.getTraceID());
+            System.out.println("llmCall SpanID: " + span.getSpanID());
+            System.out.println("llmCall Baggage: " + span.getBaggage());
+
             // 模拟 LLM 处理
             String modelName = "gpt-4o-2024-05-13";
-            String input = "上海天气怎么样？";
+            ModelInput input = new ModelInput();
+            input.setMessages(Collections.singletonList(new ModelMessage("user", "上海天气怎么样？")));
             
             // 模拟 API 调用（实际使用时替换为真实的 LLM API 调用）
             // 这里只是模拟
@@ -96,7 +116,12 @@ public class SimpleTraceExample {
             }
             
             // 模拟响应
-            String[] respChoices = {"上海天气晴朗，气温25摄氏度。"};
+            ModelOutput output = new ModelOutput();
+            output.setChoices(Collections.singletonList(new ModelChoice(
+                    new ModelMessage("assistant", "上海天气晴朗，气温25摄氏度。"),
+                    "stop",
+                    0L
+            )));
             int respPromptTokens = 11;
             int respCompletionTokens = 52;
             
@@ -104,13 +129,22 @@ public class SimpleTraceExample {
             span.setInput(input);
             
             // 设置 span 的输出
-            span.setOutput(respChoices);
+            span.setOutput(output);
             
             // 设置 model provider，例如：openai, anthropic 等
             span.setModelProvider("openai");
             
             // 设置 model name，例如：gpt-4-1106-preview 等
-            span.setModel(modelName);
+            span.setModelName(modelName);
+
+            // 设置模型参数
+            span.setModelTopP(0.6);
+            span.setModelTopK(2);
+            span.setModelMaxTokens(2096);
+            span.setModelTemperature(0.8);
+            span.setModelFrequencyPenalty(0.7);
+            span.setModelPresencePenalty(0.8);
+            span.setModelStopSequences(Arrays.asList("finish", "tool_calls"));
             
             // 设置输入 tokens 数量
             // 当设置了 input_tokens 和 output_tokens 后，会自动计算 total_tokens
@@ -118,20 +152,32 @@ public class SimpleTraceExample {
             
             // 设置输出 tokens 数量
             span.setOutputTokens(respCompletionTokens);
+
+            // set code and error
+            span.setStatusCode(112);
+            span.setError(new RuntimeException("llmCall")); // when set error, if status_code is 0 or null, it'll be set -1 by default
             
             // 设置首次响应时间（微秒）
             // 当设置了 start_time_first_resp 后，会根据 span 的 StartTime 计算
             // 一个名为 latency_first_resp 的标签，表示首次数据包的延迟
-            long firstRespTime = System.currentTimeMillis() * 1000; // 转换为微秒
-            span.setAttribute("start_time_first_resp", firstRespTime);
+            long firstRespTime = startTime + 200000; // 假设用了200ms，转换为微秒
+            span.setStartTimeFirstResp(firstRespTime);
+
+            // set service name
+            span.setServiceName("a.b.c");
+
+            // set logID
+            span.setLogID("log-123456");
+
+            // set deployment env
+            span.setDeploymentEnv("boe");
             
             System.out.println("LLM 调用成功");
             System.out.println("  输入: " + input);
-            System.out.println("  输出: " + respChoices[0]);
+            System.out.println("  输出: " + output);
             System.out.println("  模型: " + modelName);
             System.out.println("  输入 tokens: " + respPromptTokens);
             System.out.println("  输出 tokens: " + respCompletionTokens);
-            
             return true;
         }
     }

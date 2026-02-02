@@ -3,8 +3,6 @@ package trace.parent_child;
 import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.client.CozeLoopClientBuilder;
 import com.coze.loop.trace.CozeLoopSpan;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -46,15 +44,15 @@ public class ParentChildSpanExample {
             // 1. 创建根 span（因为没有父 span，所以这是新 trace 的根 span）
             try (CozeLoopSpan rootSpan = client.startSpan("root_span", "main_span")) {
                 // 2. 设置自定义标签
-                rootSpan.setAttribute("service_name", "core");
+                rootSpan.setTag("service_name", "core");
                 
                 // 3. 设置自定义属性（这些属性会传递给子 span）
-                rootSpan.setAttribute("product_id", "123456654321");
-                rootSpan.setAttribute("product_name", "AI bot");
-                rootSpan.setAttribute("product_version", "0.0.1");
+                rootSpan.setTag("product_id", "123456654321");
+                rootSpan.setTag("product_name", "AI bot");
+                rootSpan.setTag("product_version", "0.0.1");
                 
                 // 4. 设置用户 ID（会隐式设置 tag key: user_id）
-                rootSpan.setAttribute("user_id", "123456");
+                rootSpan.setTag("user_id", "123456");
                 
                 // 5. 调用 LLM（这会创建一个子 span）
                 boolean success = callLLM(client);
@@ -65,8 +63,7 @@ public class ParentChildSpanExample {
                 }
                 
                 // 6. 假设需要运行一个异步任务，它的 span 是 rootSpan 的子 span
-                Span rootSpanContext = rootSpan.getSpan();
-                CompletableFuture<Void> asyncTask = asyncRendering(client, rootSpanContext);
+                CompletableFuture<Void> asyncTask = asyncRendering(client, rootSpan);
                 
                 // 等待异步任务完成（在实际服务中，这个延迟不是必需的）
                 try {
@@ -75,9 +72,6 @@ public class ParentChildSpanExample {
                     System.err.println("异步任务执行异常：" + e.getMessage());
                 }
             }
-            
-            // 7. （可选）强制刷新
-            // client.flush();
             
             // 由于 asyncRending 在单独的线程中运行，它的 finish 方法可能会稍后执行。
             // 这里我们故意添加一个延迟来模拟服务的持续运行。
@@ -89,10 +83,10 @@ public class ParentChildSpanExample {
             System.err.println("执行失败：" + e.getMessage());
             e.printStackTrace();
         } finally {
-            // 8. 关闭客户端
-            // 警告：一旦执行 Close，客户端将不可用，需要通过 NewClient 创建新客户端！
-            // 仅在需要释放资源时使用，例如关闭实例时！
-            client.close();
+            // force flush trace to backend
+            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
+            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
+            client.flush();
         }
     }
     
@@ -122,7 +116,7 @@ public class ParentChildSpanExample {
             span.setInput(input);
             span.setOutput(respChoices);
             span.setModelProvider("openai");
-            span.setModel(modelName);
+            span.setModelName(modelName);
             span.setInputTokens(respPromptTokens);
             span.setOutputTokens(respCompletionTokens);
             
@@ -138,27 +132,23 @@ public class ParentChildSpanExample {
      * 在同一个线程中，在父 span 的 scope 内创建的子 span 会自动成为父子关系。
      * 但在异步任务中，需要手动传递 context。
      */
-    private static CompletableFuture<Void> asyncRendering(CozeLoopClient client, Span parentSpan) {
+    private static CompletableFuture<Void> asyncRendering(CozeLoopClient client, CozeLoopSpan parentSpan) {
         // 获取当前 context（包含父 span 信息）
-        Context parentContext = Context.current().with(parentSpan);
-        
+
         return CompletableFuture.runAsync(() -> {
             // 在新的线程中设置 context
-            try (io.opentelemetry.context.Scope scope = parentContext.makeCurrent()) {
-                // 创建子 span（会自动成为 parentSpan 的子 span）
-                try (CozeLoopSpan asyncSpan = client.startSpan("asyncRendering", "rendering")) {
-                    // 模拟异步处理
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    
-                    // 设置状态码
-                    asyncSpan.setStatusCode(0);
-                    
-                    System.out.println("异步渲染任务完成（子 span）");
+            try (CozeLoopSpan asyncSpan = client.startSpan("asyncRendering", "rendering", parentSpan)) {
+                // 模拟异步处理
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
+
+                // 设置状态码
+                asyncSpan.setStatusCode(0);
+
+                System.out.println("异步渲染任务完成（子 span）");
             }
         });
     }

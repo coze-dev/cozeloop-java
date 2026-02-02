@@ -64,7 +64,7 @@ public class CozeTraceAspect {
      * Supports SpEL expressions.
      */
     private String resolveSpanName(CozeTrace annotation, ProceedingJoinPoint pjp) {
-        String name = annotation.value();
+        String name = annotation.name();
         
         // If no name specified, use method name
         if (name.isEmpty()) {
