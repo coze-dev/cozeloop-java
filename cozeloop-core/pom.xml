@@ -18,6 +18,7 @@
 
     <name>CozeLoop Java SDK - Core</name>
     <description>Core module of CozeLoop Java SDK</description>
+    <url>https://github.com/coze-dev/cozeloop-java</url>
 
     <licenses>
         <license>
@@ -25,6 +26,27 @@
             <url>https://github.com/coze-dev/cozeloop-java/blob/main/LICENSE</url>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/coze-dev/cozeloop-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com/coze-dev/cozeloop-java.git</developerConnection>
+        <url>http://github.com/coze-dev/cozeloop-java/tree/main</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Coze Dev Team</name>
+            <email>dev@coze.com</email>
+            <organization>Spring (SG) Pte. Ltd.</organization>
+            <organizationUrl>https://www.coze.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>JqRrt</name>
+            <email>jiangqi.rrt@bytedance.com</email>
+            <organization>Spring (SG) Pte. Ltd.</organization>
+            <organizationUrl>https://www.coze.com</organizationUrl>
+        </developer>
+    </developers>
 
     <dependencies>
         <!-- OpenTelemetry -->
