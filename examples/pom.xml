@@ -21,6 +21,7 @@
 
     <properties>
         <exec.mainClass>init.pat.PatExample</exec.mainClass>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>

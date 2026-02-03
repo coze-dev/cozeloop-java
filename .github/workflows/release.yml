@@ -28,4 +28,4 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         run: |
-          mvn -pl cozeloop-core clean deploy -P release -DskipTests
+          mvn clean deploy -P release -DskipTests
