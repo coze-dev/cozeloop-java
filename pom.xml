@@ -5,7 +5,7 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.coze</groupId>
+    <groupId>com.coze.loop</groupId>
     <artifactId>cozeloop-java</artifactId>
     <version>0.1.0</version>
     <packaging>pom</packaging>
@@ -27,10 +27,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <!-- Dependency versions -->
-        <opentelemetry.version>1.34.1</opentelemetry.version>
+        <opentelemetry.version>1.47.0</opentelemetry.version>
         <okhttp.version>4.12.0</okhttp.version>
-        <jackson.version>2.16.1</jackson.version>
-        <caffeine.version>2.9.3</caffeine.version>
+        <jackson.version>2.18.3</jackson.version>
+        <caffeine.version>3.1.8</caffeine.version>
         <commons-text.version>1.11.0</commons-text.version>
         <jinjava.version>2.7.1</jinjava.version>
         <jjwt.version>0.12.5</jjwt.version>

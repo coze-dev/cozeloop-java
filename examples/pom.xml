@@ -5,7 +5,13 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.coze</groupId>
+    <parent>
+        <groupId>com.coze.loop</groupId>
+        <artifactId>cozeloop-java</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>cozeloop-java-examples</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
@@ -13,24 +19,17 @@
     <name>CozeLoop Java SDK Examples</name>
     <description>Example code for CozeLoop Java SDK</description>
 
-    <parent>
-        <groupId>com.coze.loop</groupId>
-        <artifactId>cozeloop-java-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
     <properties>
         <exec.mainClass>init.pat.PatExample</exec.mainClass>
     </properties>
 
     <dependencies>
         <!-- CozeLoop Core -->
-<!--        <dependency>-->
-<!--            <groupId>com.coze.loop</groupId>-->
-<!--            <artifactId>cozeloop-core</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.coze.loop</groupId>
+            <artifactId>cozeloop-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -40,7 +39,7 @@
         <dependency>
             <groupId>com.coze.loop</groupId>
             <artifactId>cozeloop-spring-boot-starter</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

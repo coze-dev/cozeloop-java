@@ -15,7 +15,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
-import io.opentelemetry.semconv.ResourceAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +124,7 @@ public class CozeLoopTracerProvider {
         // Step 2: Create Resource with service metadata
         Resource resource = Resource.getDefault()
                 .merge(Resource.builder()
-                        .put(ResourceAttributes.SERVICE_NAME, serviceName)
+                        .put("service.name", serviceName)
                         .put("workspace.id", workspaceId)
                         .build());
 

@@ -5,7 +5,13 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.coze</groupId>
+    <parent>
+        <groupId>com.coze.loop</groupId>
+        <artifactId>cozeloop-java</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>cozeloop-core</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
@@ -35,12 +41,6 @@
             <artifactId>opentelemetry-exporter-common</artifactId>
             <version>1.47.0</version>
         </dependency>
-        <dependency>
-            <groupId>io.opentelemetry.semconv</groupId>
-            <artifactId>opentelemetry-semconv</artifactId>
-            <version>1.30.0</version>
-        </dependency>
-        
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-otlp</artifactId>

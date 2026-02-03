@@ -5,7 +5,13 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.coze</groupId>
+    <parent>
+        <groupId>com.coze.loop</groupId>
+        <artifactId>cozeloop-java</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>cozeloop-spring-boot-starter</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
@@ -16,7 +22,7 @@
     <dependencies>
         <!-- CozeLoop Core -->
         <dependency>
-            <groupId>com.coze</groupId>
+            <groupId>com.coze.loop</groupId>
             <artifactId>cozeloop-core</artifactId>
             <version>${project.version}</version>
         </dependency>
