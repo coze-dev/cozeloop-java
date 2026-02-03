@@ -17,6 +17,7 @@
     <modules>
         <module>cozeloop-core</module>
         <module>cozeloop-spring-boot-starter</module>
+        <module>examples</module>
     </modules>
 
     <properties>
