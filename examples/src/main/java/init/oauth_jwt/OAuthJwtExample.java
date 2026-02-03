@@ -59,14 +59,16 @@ public class OAuthJwtExample {
         try {
             // 使用客户端创建 span
             try (CozeLoopSpan span = client.startSpan("first_span", "custom")) {
-                span.setAttribute("example", "oauth_jwt_init");
+                span.setTag("example", "oauth_jwt_init");
                 System.out.println("使用 OAuth JWT 创建了第一个 span");
             }
             
             System.out.println("示例执行成功！");
         } finally {
-            // 重要：程序退出前记得关闭客户端，否则可能丢失未上报的 traces
-            client.close();
+            // force flush trace to backend
+            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
+            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
+            client.flush();
         }
     }
     
@@ -88,14 +90,16 @@ public class OAuthJwtExample {
         try {
             // 使用客户端
             try (CozeLoopSpan span = client.startSpan("custom_span", "custom")) {
-                span.setAttribute("example", "oauth_jwt_custom_config");
+                span.setTag("example", "oauth_jwt_custom_config");
                 System.out.println("使用自定义配置创建了 span");
             }
             
             System.out.println("自定义配置示例执行成功！");
         } finally {
-            // 重要：程序退出前记得关闭客户端
-            client.close();
+            // force flush trace to backend
+            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
+            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
+            client.flush();
         }
     }
 }

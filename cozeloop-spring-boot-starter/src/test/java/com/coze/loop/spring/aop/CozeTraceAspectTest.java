@@ -186,7 +186,7 @@ class CozeTraceAspectTest {
             }
 
             @Override
-            public String value() {
+            public String name() {
                 return value;
             }
 

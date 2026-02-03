@@ -110,17 +110,15 @@ public class TraceWithPromptExample {
                 // 5. 调用 LLM
                 callLLM(client, messages);
             }
-            
-            // 6. （可选）强制刷新
-            // client.flush();
-            
             System.out.println("追踪与提示示例执行成功！");
         } catch (Exception e) {
             System.err.println("执行失败：" + e.getMessage());
             e.printStackTrace();
         } finally {
-            // 7. 关闭客户端
-            client.close();
+            // force flush trace to backend
+            // 警告：一般情况下不需要调用此方法，因为 spans 会自动批量上报。
+            // 注意：flush 会阻塞并等待上报完成，可能导致频繁上报，影响性能。
+            client.flush();
         }
     }
     
@@ -148,13 +146,13 @@ public class TraceWithPromptExample {
             span.setInput(messages);
             span.setOutput(respChoices);
             span.setModelProvider("openai");
-            span.setModel(modelName);
+            span.setModelName(modelName);
             span.setInputTokens(respPromptTokens);
             span.setOutputTokens(respCompletionTokens);
             
             // 设置首次响应时间
             long firstRespTime = System.currentTimeMillis() * 1000;
-            span.setAttribute("start_time_first_resp", firstRespTime);
+            span.setTag("start_time_first_resp", firstRespTime);
             
             System.out.println("LLM 调用完成");
             System.out.println("  输出: " + respChoices[0]);

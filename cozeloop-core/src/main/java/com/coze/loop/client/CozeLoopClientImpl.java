@@ -7,16 +7,22 @@ import com.coze.loop.entity.Prompt;
 import com.coze.loop.exception.CozeLoopException;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.http.HttpClient;
+import com.coze.loop.internal.Constants;
 import com.coze.loop.prompt.GetPromptParam;
 import com.coze.loop.prompt.PromptProvider;
+import com.coze.loop.spec.tracespec.SpanKeys;
+import com.coze.loop.spec.tracespec.SpanValues;
 import com.coze.loop.stream.StreamReader;
 import com.coze.loop.trace.CozeLoopSpan;
 import com.coze.loop.trace.CozeLoopTracerProvider;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.propagation.TextMapGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CozeLoopClientImpl implements CozeLoopClient {
     private static final Logger logger = LoggerFactory.getLogger(CozeLoopClientImpl.class);
     private static final String INSTRUMENTATION_NAME = "cozeloop-java-sdk";
+    private static final String INSTRUMENTATION_VERSION = Constants.Version;
     
     private final String workspaceId;
     private final CozeLoopTracerProvider tracerProvider;
@@ -47,7 +54,11 @@ public class CozeLoopClientImpl implements CozeLoopClient {
         this.tracerProvider = tracerProvider;
         this.promptProvider = promptProvider;
         this.httpClient = httpClient;
-        this.tracer = tracerProvider.getTracer(INSTRUMENTATION_NAME);
+        this.tracer = tracerProvider.getTracer(INSTRUMENTATION_NAME, INSTRUMENTATION_VERSION);
+        
+        if (this.promptProvider != null) {
+            this.promptProvider.setClient(this);
+        }
         
         logger.info("CozeLoop client initialized for workspace: {}", workspaceId);
     }
@@ -56,23 +67,98 @@ public class CozeLoopClientImpl implements CozeLoopClient {
     
     @Override
     public CozeLoopSpan startSpan(String name) {
-        return startSpan(name, "custom");
+        return startSpan(name, "custom", (CozeLoopSpan) null);
+    }
+
+    @Override
+    public CozeLoopSpan startSpan(String name, String spanType) {
+        return startSpan(name, spanType, (CozeLoopSpan) null);
+    }
+
+    @Override
+    public CozeLoopSpan startSpan(String name, String spanType, String scene) {
+        return startSpan(name, spanType, (CozeLoopSpan) null, scene);
     }
     
     @Override
-    public CozeLoopSpan startSpan(String name, String spanType) {
+    public CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan) {
         checkNotClosed();
         
+        Context parentContext = parentSpan != null && parentSpan.getSpan() != null ?
+                Context.current().with(parentSpan.getSpan()) : null;
+        
+        return startSpan(name, spanType, parentContext);
+    }
+
+    @Override
+    public CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan, String scene) {
+        checkNotClosed();
+
+        Context parentContext = parentSpan != null && parentSpan.getSpan() != null ?
+                Context.current().with(parentSpan.getSpan()) : null;
+
+        return startSpan(name, spanType, parentContext, scene);
+    }
+
+    @Override
+    public CozeLoopSpan startSpan(String name, String spanType, Context parentContext) {
+        checkNotClosed();
+
+        return startSpan(name, spanType, parentContext, "");
+    }
+
+    @Override
+    public CozeLoopSpan startSpan(String name, String spanType, Context parentContext, String scene) {
+        checkNotClosed();
+
         SpanBuilder spanBuilder = tracer.spanBuilder(name);
+        Context contextToUse = parentContext != null ? parentContext : Context.current();
         
+        if (parentContext != null) {
+            spanBuilder.setParent(parentContext);
+        }
+
         // Set span type attribute
-        spanBuilder.setAttribute(AttributeKey.stringKey("span.type"), spanType);
-        
-        // Start span and make it current
+        spanBuilder.setAttribute(AttributeKey.stringKey(SpanKeys.COZELOOP_SPAN_TYPE), spanType);
+
+        // Auto-apply Baggage from context as Span Attributes (tags), matching Go SDK behavior
+        Baggage baggage = Baggage.fromContext(contextToUse);
+        baggage.forEach((key, value) -> {
+            spanBuilder.setAttribute(AttributeKey.stringKey(key), value.getValue());
+        });
+
+        // Start span and make it current in the correct context
+        // By using contextToUse.with(span), we ensure that any Baggage in contextToUse
+        // (including inherited baggage) is preserved and made current for this thread.
         Span span = spanBuilder.startSpan();
-        Scope scope = span.makeCurrent();
-        
-        return new CozeLoopSpan(span, scope);
+        Context finalContext = contextToUse.with(span);
+        Scope scope = finalContext.makeCurrent();
+
+        return new CozeLoopSpan(span, scope, tracerProvider.getPropagators(), finalContext, scene);
+    }
+
+    @Override
+    public Context extractContext(Map<String, String> headers) {
+        checkNotClosed();
+        if (headers == null || headers.isEmpty()) {
+            return Context.current();
+        }
+
+        return tracerProvider.getPropagators().getTextMapPropagator().extract(
+                Context.current(),
+                headers,
+                new TextMapGetter<Map<String, String>>() {
+                    @Override
+                    public Iterable<String> keys(Map<String, String> carrier) {
+                        return carrier.keySet();
+                    }
+
+                    @Override
+                    public String get(Map<String, String> carrier, String key) {
+                        return carrier.get(key);
+                    }
+                }
+        );
     }
     
     @Override
@@ -125,6 +211,12 @@ public class CozeLoopClientImpl implements CozeLoopClient {
     public String getWorkspaceId() {
         checkNotClosed();
         return workspaceId;
+    }
+
+    @Override
+    public void flush() {
+        checkNotClosed();
+        tracerProvider.flush();
     }
     
     @Override

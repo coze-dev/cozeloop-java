@@ -49,7 +49,7 @@ class CozeLoopClientImplTest {
 
     @BeforeEach
     void setUp() {
-        when(tracerProvider.getTracer(any())).thenReturn(tracer);
+        when(tracerProvider.getTracer(any(), any())).thenReturn(tracer);
         client = new CozeLoopClientImpl(workspaceId, tracerProvider, promptProvider, httpClient);
     }
 

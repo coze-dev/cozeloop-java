@@ -36,6 +36,7 @@ public class PromptHubExample {
     public static void main(String[] args) {
         String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
         String apiToken = System.getenv("COZELOOP_API_TOKEN");
+        String promptKey = System.getenv("COZELOOP_PROMPT_KEY");
         
         if (workspaceId == null || apiToken == null) {
             System.err.println("请设置环境变量：");
@@ -56,7 +57,7 @@ public class PromptHubExample {
                 
                 // 2. 获取 prompt
                 Prompt prompt = client.getPrompt(GetPromptParam.builder()
-                    .promptKey("prompt_hub_demo")
+                    .promptKey(promptKey)
                     .version("0.0.1") // 如果不指定版本，将获取对应 prompt 的最新版本
                     .build());
                 
@@ -87,8 +88,8 @@ public class PromptHubExample {
                 // 准备变量
                 Map<String, Object> variables = new HashMap<>();
                 // 普通变量类型应该是 String
-                variables.put("var1", "artificial intelligence");
-                variables.put("var2", "What is AI?");
+                variables.put("name", "Mobile Problem Answering Tool");
+                variables.put("platform", "Android");
                 
                 // Placeholder 变量类型应该是 Message/List<Message>
                 // 注意：prompt 模板中未提供对应值的变量将被视为空值
@@ -151,13 +152,13 @@ public class PromptHubExample {
             span.setInput(messages);
             span.setOutput(respChoices);
             span.setModelProvider("openai");
-            span.setModel(modelName);
+            span.setModelName(modelName);
             span.setInputTokens(respPromptTokens);
             span.setOutputTokens(respCompletionTokens);
             
             // 设置首次响应时间
             long firstRespTime = System.currentTimeMillis() * 1000;
-            span.setAttribute("start_time_first_resp", firstRespTime);
+            span.setTag("start_time_first_resp", firstRespTime);
             
             System.out.println("\nLLM 调用完成");
             System.out.println("  输出: " + respChoices[0]);
