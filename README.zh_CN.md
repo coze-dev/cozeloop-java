@@ -26,9 +26,9 @@ CozeLoop Java SDK 是一个用于与 [扣子罗盘平台](https://loop.coze.cn) 
 
 ```xml
 <dependency>
-    <groupId>com.coze.loop</groupId>
+    <groupId>com.coze</groupId>
     <artifactId>cozeloop-core</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
@@ -36,9 +36,9 @@ CozeLoop Java SDK 是一个用于与 [扣子罗盘平台](https://loop.coze.cn) 
 
 ```xml
 <dependency>
-    <groupId>com.coze.loop</groupId>
+    <groupId>com.coze</groupId>
     <artifactId>cozeloop-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 

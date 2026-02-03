@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.coze.loop</groupId>
+        <groupId>com.coze</groupId>
         <artifactId>cozeloop-java</artifactId>
         <version>0.1.0</version>
         <relativePath>../pom.xml</relativePath>
@@ -22,7 +22,7 @@
     <dependencies>
         <!-- CozeLoop Core -->
         <dependency>
-            <groupId>com.coze.loop</groupId>
+            <groupId>com.coze</groupId>
             <artifactId>cozeloop-core</artifactId>
             <version>${project.version}</version>
         </dependency>

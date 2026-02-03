@@ -25,9 +25,9 @@ Java SDK for interacting with [CozeLoop platform](https://loop.coze.cn).
 
 ```xml
 <dependency>
-    <groupId>com.coze.loop</groupId>
+    <groupId>com.coze</groupId>
     <artifactId>cozeloop-core</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
@@ -35,9 +35,9 @@ Java SDK for interacting with [CozeLoop platform](https://loop.coze.cn).
 
 ```xml
 <dependency>
-    <groupId>com.coze.loop</groupId>
+    <groupId>com.coze</groupId>
     <artifactId>cozeloop-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
