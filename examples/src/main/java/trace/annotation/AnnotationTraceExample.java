@@ -24,11 +24,10 @@ public class AnnotationTraceExample {
   public static void main(String[] args) {
     // Set environment variables for the example
     // In a real application, these would be in application.yml or environment variables
-    // workspaceId and apiToken from property are set to client automatically, you also can set in application.yml
+    // workspaceId and apiToken from property are set to client automatically, you also can set in
+    // application.yml
     System.setProperty("cozeloop.workspace-id", "****");
-    System.setProperty(
-        "cozeloop.auth.token",
-        "pat_***");
+    System.setProperty("cozeloop.auth.token", "pat_***");
 
     ConfigurableApplicationContext context =
         SpringApplication.run(AnnotationTraceExample.class, args);

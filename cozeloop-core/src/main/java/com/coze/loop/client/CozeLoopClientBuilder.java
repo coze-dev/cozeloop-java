@@ -26,24 +26,24 @@ public class CozeLoopClientBuilder {
   private void loadByEnv() {
     // Load workspace ID
     String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
-    if (workspaceId!= null) {
+    if (workspaceId != null) {
       this.config.setWorkspaceId(workspaceId);
     }
     // Load service name
     String serviceName = System.getenv("COZELOOP_SERVICE_NAME");
-    if (serviceName!= null) {
+    if (serviceName != null) {
       this.config.setServiceName(serviceName);
     }
     // Load auth token
     String token = System.getenv("COZELOOP_API_TOKEN");
-    if (token!= null) {
+    if (token != null) {
       this.tokenAuth(token);
     }
     // Load JWT auth
     String clientId = System.getenv("COZELOOP_JWT_OAUTH_CLIENT_ID");
     String privateKey = System.getenv("COZELOOP_JWT_OAUTH_PRIVATE_KEY");
     String publicKeyId = System.getenv("COZELOOP_JWT_OAUTH_PUBLIC_KEY_ID");
-    if (clientId!= null && privateKey!= null && publicKeyId!= null) {
+    if (clientId != null && privateKey != null && publicKeyId != null) {
       this.jwtOAuth(clientId, privateKey, publicKeyId);
     }
   }
@@ -70,7 +70,7 @@ public class CozeLoopClientBuilder {
     String clientId = ConfigUtils.get("cozeloop.auth.jwt.client-id");
     String privateKey = ConfigUtils.get("cozeloop.auth.jwt.private-key");
     String publicKeyId = ConfigUtils.get("cozeloop.auth.jwt.public-key-id");
-    if (clientId!= null && privateKey!= null && publicKeyId!= null) {
+    if (clientId != null && privateKey != null && publicKeyId != null) {
       this.jwtOAuth(clientId, privateKey, publicKeyId);
     }
   }

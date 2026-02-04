@@ -5,10 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-SNAPSHOT] - 2025-11-11
 
+## [0.1.1] - 2025-11-11
+### Changed
+- **Cozeloop Client**: Support get workspace id and token from env
+
+
+## [0.1.0] - 2025-11-11
 ### Added
-
 - Initial CozeLoop Java SDK release
 - Core SDK module (`cozeloop-core`) with trace reporting and prompt management
 - Spring Boot starter module (`cozeloop-spring-boot-starter`) for seamless integration
@@ -30,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Checkstyle configuration for code quality
 
 ### Changed
-
 - **Trace Export**: Improved `CozeLoopSpanExporter` to export spans in batches of 25 to remote server
   - Spans are now automatically split into batches of 25 before sending to CozeLoop platform
   - Enhanced error handling: individual batch failures don't prevent other batches from being exported
@@ -38,7 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Better resilience and observability for trace export operations
 
 ### Features
-
 - **Trace Reporting**: Automatic batch reporting of traces to CozeLoop platform
   - Multi-level batching: OpenTelemetry BatchSpanProcessor + custom 25-span batches
   - Robust error handling with per-batch failure isolation
