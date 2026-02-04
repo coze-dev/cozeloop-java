@@ -29,6 +29,7 @@ public class TraceWithPromptExample {
   public static void main(String[] args) {
     String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
     String apiToken = System.getenv("COZELOOP_API_TOKEN");
+    String promptKey = System.getenv("COZELOOP_PROMPT_KEY");
 
     if (workspaceId == null || apiToken == null) {
       System.err.println("请设置环境变量：");
@@ -48,7 +49,7 @@ public class TraceWithPromptExample {
         Prompt prompt =
             client.getPrompt(
                 GetPromptParam.builder()
-                    .promptKey("prompt_hub_demo")
+                    .promptKey(promptKey)
                     .version("0.0.1") // 如果不指定版本，将获取对应 prompt 的最新版本
                     .build());
 

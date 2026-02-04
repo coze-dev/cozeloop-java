@@ -14,7 +14,6 @@ import com.coze.loop.spec.tracespec.SpanValues;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 
@@ -56,7 +55,7 @@ public class CozeLoopSpan implements AutoCloseable {
   private final ContextPropagators propagators;
   private final String scene;
   private final List<Scope> extraScopes = new ArrayList<>();
-  private Context context;
+  private CozeLoopContext context;
   private Runtime runtime;
 
   /**
@@ -72,7 +71,11 @@ public class CozeLoopSpan implements AutoCloseable {
    * @param scene the scene identifier for this span
    */
   public CozeLoopSpan(
-      Span span, Scope scope, ContextPropagators propagators, Context context, String scene) {
+      Span span,
+      Scope scope,
+      ContextPropagators propagators,
+      CozeLoopContext context,
+      String scene) {
     this.span = span;
     this.scope = scope;
     this.propagators = propagators;
@@ -496,7 +499,7 @@ public class CozeLoopSpan implements AutoCloseable {
       span.setAttribute(key, value);
 
       Baggage baggage = Baggage.fromContext(context).toBuilder().put(key, value).build();
-      this.context = context.with(baggage);
+      this.context = new CozeLoopContext(context.with(baggage));
       extraScopes.add(this.context.makeCurrent());
     }
     return this;
@@ -518,7 +521,7 @@ public class CozeLoopSpan implements AutoCloseable {
           builder.put(entry.getKey(), entry.getValue());
         }
       }
-      this.context = context.with(builder.build());
+      this.context = new CozeLoopContext(context.with(builder.build()));
       extraScopes.add(this.context.makeCurrent());
     }
     return this;
@@ -540,7 +543,7 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param carrier the map to inject headers into (e.g. HTTP request headers)
    */
-  public void injectToHeaders(Map<String, String> carrier) {
+  private void injectToHeaders(Map<String, String> carrier) {
     if (propagators != null) {
       propagators.getTextMapPropagator().inject(this.context, carrier, Map::put);
     }
@@ -603,197 +606,24 @@ public class CozeLoopSpan implements AutoCloseable {
   }
 
   /**
-   * Add an event to this span.
+   * Get the CozeLoop Context associated with this span.
    *
-   * <p>Events are timestamped annotations on a span that represent something that happened during
-   * the span's lifetime. They are useful for marking important milestones or state changes.
+   * <p>This context includes the current span, baggage, and other propagation data. It can be used
+   * to create child spans or for manual context propagation.
    *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * span.addEvent("operation-started");
-   * span.addEvent("data-processed");
-   * span.addEvent("operation-completed");
-   * }</pre>
-   *
-   * @param eventName the name of the event
-   * @return this span
+   * @return the CozeLoop context
    */
-  public CozeLoopSpan addEvent(String eventName) {
-    if (eventName != null) {
-      span.addEvent(eventName);
-    }
-    return this;
+  public CozeLoopContext getContext() {
+    return context;
   }
 
   /**
-   * Add an event with attributes to this span.
+   * End the span and close the scope.
    *
-   * <p>Events are timestamped annotations on a span. This method allows you to add an event with
-   * associated attributes. The attributes are set on the span with an "event." prefix to
-   * distinguish them from regular span attributes.
-   *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * Map<String, Object> eventAttrs = new HashMap<>();
-   * eventAttrs.put("response_length", 150L);
-   * eventAttrs.put("model", "gpt-4");
-   * span.addEvent("llm-response-received", eventAttrs);
-   * }</pre>
-   *
-   * <p>For more advanced event attributes, you can use the underlying OpenTelemetry Span:
-   *
-   * <pre>{@code
-   * import io.opentelemetry.api.common.Attributes;
-   * span.getSpan().addEvent("event-name",
-   *     Attributes.of(AttributeKey.stringKey("key"), "value"));
-   * }</pre>
-   *
-   * @param eventName the name of the event
-   * @param attributes the attributes to attach to the event (will be prefixed with "event.")
-   * @return this span
+   * <p>This method is automatically called when using try-with-resources. It ends the span (marking
+   * it as finished) and closes the scope (removing it from the current context). The span will then
+   * be processed by the BatchSpanProcessor and eventually exported to CozeLoop platform.
    */
-  public CozeLoopSpan addEvent(String eventName, Map<String, Object> attributes) {
-    if (eventName != null && attributes != null && !attributes.isEmpty()) {
-      // Set attributes on the span with "event." prefix to associate them with the event
-      for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-        String key = entry.getKey();
-        Object value = entry.getValue();
-        if (key == null || value == null) {
-          continue;
-        }
-
-        // Set attributes with "event." prefix to associate with the event
-        String eventAttrKey = "event." + key;
-        if (value instanceof String) {
-          span.setAttribute(AttributeKey.stringKey(eventAttrKey), (String) value);
-        } else if (value instanceof Long) {
-          span.setAttribute(AttributeKey.longKey(eventAttrKey), (Long) value);
-        } else if (value instanceof Integer) {
-          span.setAttribute(AttributeKey.longKey(eventAttrKey), ((Integer) value).longValue());
-        } else if (value instanceof Double) {
-          span.setAttribute(AttributeKey.doubleKey(eventAttrKey), (Double) value);
-        } else if (value instanceof Float) {
-          span.setAttribute(AttributeKey.doubleKey(eventAttrKey), ((Float) value).doubleValue());
-        } else if (value instanceof Boolean) {
-          span.setAttribute(AttributeKey.booleanKey(eventAttrKey), (Boolean) value);
-        } else {
-          // Convert other types to string
-          span.setAttribute(AttributeKey.stringKey(eventAttrKey), String.valueOf(value));
-        }
-      }
-      // Add the event
-      span.addEvent(eventName);
-    }
-    return this;
-  }
-
-  /**
-   * Record an exception on this span.
-   *
-   * <p>This is a convenience method that records an exception as an event with exception details.
-   * It's equivalent to calling setError() but provides more detailed exception information.
-   *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * try {
-   *     // operation
-   * } catch (Exception e) {
-   *     span.recordException(e);
-   *     span.setStatusCode(1);
-   *     throw e;
-   * }
-   * }</pre>
-   *
-   * @param exception the exception to record
-   * @return this span
-   */
-  public CozeLoopSpan recordException(Throwable exception) {
-    if (exception != null) {
-      span.recordException(exception);
-    }
-    return this;
-  }
-
-  /**
-   * Get the current OpenTelemetry Context.
-   *
-   * <p>This is useful for accessing the current context, which includes:
-   *
-   * <ul>
-   *   <li>Current span
-   *   <li>Baggage (key-value data propagated across services)
-   *   <li>Other context data
-   * </ul>
-   *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * Context currentContext = span.getCurrentContext();
-   * // Use context for async operations or cross-service propagation
-   * }</pre>
-   *
-   * @return the current OpenTelemetry context
-   */
-  public Context getCurrentContext() {
-    return Context.current();
-  }
-
-  /**
-   * Get the span context for this span.
-   *
-   * <p>The span context contains trace ID, span ID, trace flags, and trace state. It can be used to
-   * create links to this span from other spans, or to propagate trace context across service
-   * boundaries.
-   *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * SpanContext spanContext = span.getSpanContext();
-   * // Pass spanContext to another service or span
-   * }</pre>
-   *
-   * @return the span context
-   */
-  public io.opentelemetry.api.trace.SpanContext getSpanContext() {
-    return span.getSpanContext();
-  }
-
-  /**
-   * Get the underlying OpenTelemetry Span.
-   *
-   * <p>This method provides direct access to the underlying OpenTelemetry Span for advanced use
-   * cases that require OpenTelemetry-specific APIs not exposed through CozeLoopSpan.
-   *
-   * <p>Example:
-   *
-   * <pre>{@code
-   * Span otelSpan = span.getSpan();
-   * // Use OpenTelemetry APIs directly
-   * otelSpan.setAttribute(AttributeKey.stringKey("custom"), "value");
-   * }</pre>
-   *
-   * @return the underlying OpenTelemetry span
-   */
-  public Span getSpan() {
-    return span;
-  }
-
-  /**
-   * Get the scope associated with this span.
-   *
-   * <p>The scope is what makes this span "current" in the OpenTelemetry context. When the scope is
-   * closed, the span is no longer current. This is automatically handled by the try-with-resources
-   * pattern, but can be accessed for advanced use cases.
-   *
-   * @return the scope
-   */
-  public Scope getScope() {
-    return scope;
-  }
-
   public void finish() {
     try {
       setSystemTag();

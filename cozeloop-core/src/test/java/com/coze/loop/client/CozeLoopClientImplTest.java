@@ -96,12 +96,6 @@ class CozeLoopClientImplTest {
   }
 
   @Test
-  void testGetTracer() {
-    Tracer result = client.getTracer();
-    assertThat(result).isEqualTo(tracer);
-  }
-
-  @Test
   void testGetPrompt() {
     GetPromptParam param = GetPromptParam.builder().promptKey("test-key").build();
     Prompt prompt = new Prompt();

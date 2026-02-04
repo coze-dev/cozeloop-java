@@ -5,9 +5,8 @@ import java.util.Map;
 import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.client.CozeLoopClientBuilder;
 import com.coze.loop.spec.tracespec.SpanKeys;
+import com.coze.loop.trace.CozeLoopContext;
 import com.coze.loop.trace.CozeLoopSpan;
-
-import io.opentelemetry.context.Context;
 
 /**
  * Example demonstrating trace propagation between services. In a real scenario, Service A and
@@ -83,7 +82,7 @@ public class TransferBetweenServicesExample {
    */
   private static void serviceB(CozeLoopClient client, Map<String, String> headers) {
     // 1. Extract context from incoming headers
-    Context parentContext = client.extractContext(headers);
+    CozeLoopContext parentContext = client.extractContext(headers);
     System.out.println("Service B: Extracted parent context from headers");
 
     // 2. Start a new span as a child of the extracted context

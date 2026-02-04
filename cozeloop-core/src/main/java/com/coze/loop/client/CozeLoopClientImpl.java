@@ -19,6 +19,7 @@ import com.coze.loop.prompt.GetPromptParam;
 import com.coze.loop.prompt.PromptProvider;
 import com.coze.loop.spec.tracespec.SpanKeys;
 import com.coze.loop.stream.StreamReader;
+import com.coze.loop.trace.CozeLoopContext;
 import com.coze.loop.trace.CozeLoopSpan;
 import com.coze.loop.trace.CozeLoopTracerProvider;
 
@@ -84,10 +85,7 @@ public class CozeLoopClientImpl implements CozeLoopClient {
   public CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan) {
     checkNotClosed();
 
-    Context parentContext =
-        parentSpan != null && parentSpan.getSpan() != null
-            ? Context.current().with(parentSpan.getSpan())
-            : null;
+    CozeLoopContext parentContext = parentSpan != null ? parentSpan.getContext() : null;
 
     return startSpan(name, spanType, parentContext);
   }
@@ -97,23 +95,21 @@ public class CozeLoopClientImpl implements CozeLoopClient {
       String name, String spanType, CozeLoopSpan parentSpan, String scene) {
     checkNotClosed();
 
-    Context parentContext =
-        parentSpan != null && parentSpan.getSpan() != null
-            ? Context.current().with(parentSpan.getSpan())
-            : null;
+    CozeLoopContext parentContext = parentSpan != null ? parentSpan.getContext() : null;
 
     return startSpan(name, spanType, parentContext, scene);
   }
 
   @Override
-  public CozeLoopSpan startSpan(String name, String spanType, Context parentContext) {
+  public CozeLoopSpan startSpan(String name, String spanType, CozeLoopContext parentContext) {
     checkNotClosed();
 
     return startSpan(name, spanType, parentContext, "");
   }
 
   @Override
-  public CozeLoopSpan startSpan(String name, String spanType, Context parentContext, String scene) {
+  public CozeLoopSpan startSpan(
+      String name, String spanType, CozeLoopContext parentContext, String scene) {
     checkNotClosed();
 
     SpanBuilder spanBuilder = tracer.spanBuilder(name);
@@ -140,39 +136,35 @@ public class CozeLoopClientImpl implements CozeLoopClient {
     Context finalContext = contextToUse.with(span);
     Scope scope = finalContext.makeCurrent();
 
-    return new CozeLoopSpan(span, scope, tracerProvider.getPropagators(), finalContext, scene);
+    return new CozeLoopSpan(
+        span, scope, tracerProvider.getPropagators(), new CozeLoopContext(finalContext), scene);
   }
 
   @Override
-  public Context extractContext(Map<String, String> headers) {
+  public CozeLoopContext extractContext(Map<String, String> headers) {
     checkNotClosed();
     if (headers == null || headers.isEmpty()) {
-      return Context.current();
+      return CozeLoopContext.current();
     }
 
-    return tracerProvider
-        .getPropagators()
-        .getTextMapPropagator()
-        .extract(
-            Context.current(),
-            headers,
-            new TextMapGetter<Map<String, String>>() {
-              @Override
-              public Iterable<String> keys(Map<String, String> carrier) {
-                return carrier.keySet();
-              }
+    return new CozeLoopContext(
+        tracerProvider
+            .getPropagators()
+            .getTextMapPropagator()
+            .extract(
+                Context.current(),
+                headers,
+                new TextMapGetter<Map<String, String>>() {
+                  @Override
+                  public Iterable<String> keys(Map<String, String> carrier) {
+                    return carrier.keySet();
+                  }
 
-              @Override
-              public String get(Map<String, String> carrier, String key) {
-                return carrier.get(key);
-              }
-            });
-  }
-
-  @Override
-  public Tracer getTracer() {
-    checkNotClosed();
-    return tracer;
+                  @Override
+                  public String get(Map<String, String> carrier, String key) {
+                    return carrier.get(key);
+                  }
+                }));
   }
 
   // ========== Prompt Operations ==========

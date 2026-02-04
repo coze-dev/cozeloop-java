@@ -16,9 +16,8 @@ import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.spring.aop.CozeTraceAspect;
 import com.coze.loop.spring.config.CozeLoopProperties;
 import com.coze.loop.spring.test.OpenTelemetryTestUtils;
+import com.coze.loop.trace.CozeLoopContext;
 import com.coze.loop.trace.CozeLoopSpan;
-
-import io.opentelemetry.context.Context;
 
 /** Unit tests for CozeLoopAutoConfiguration. */
 class CozeLoopAutoConfigurationTest {
@@ -176,23 +175,19 @@ class CozeLoopAutoConfigurationTest {
           }
 
           @Override
-          public CozeLoopSpan startSpan(String name, String spanType, Context parentContext) {
+          public CozeLoopSpan startSpan(
+              String name, String spanType, CozeLoopContext parentContext) {
             return null;
           }
 
           @Override
           public CozeLoopSpan startSpan(
-              String name, String spanType, Context parentContext, String scene) {
+              String name, String spanType, CozeLoopContext parentContext, String scene) {
             return null;
           }
 
           @Override
-          public Context extractContext(Map<String, String> headers) {
-            return null;
-          }
-
-          @Override
-          public io.opentelemetry.api.trace.Tracer getTracer() {
+          public CozeLoopContext extractContext(Map<String, String> headers) {
             return null;
           }
 

@@ -9,10 +9,8 @@ import com.coze.loop.entity.Message;
 import com.coze.loop.entity.Prompt;
 import com.coze.loop.prompt.GetPromptParam;
 import com.coze.loop.stream.StreamReader;
+import com.coze.loop.trace.CozeLoopContext;
 import com.coze.loop.trace.CozeLoopSpan;
-
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 
 /** Main interface for CozeLoop SDK client. Provides trace and prompt functionality. */
 public interface CozeLoopClient extends AutoCloseable {
@@ -58,9 +56,9 @@ public interface CozeLoopClient extends AutoCloseable {
    * @param parentContext the parent context
    * @return the span wrapper
    */
-  CozeLoopSpan startSpan(String name, String spanType, Context parentContext);
+  CozeLoopSpan startSpan(String name, String spanType, CozeLoopContext parentContext);
 
-  CozeLoopSpan startSpan(String name, String spanType, Context parentContext, String scene);
+  CozeLoopSpan startSpan(String name, String spanType, CozeLoopContext parentContext, String scene);
 
   /**
    * Extract context from headers for cross-service propagation.
@@ -68,14 +66,7 @@ public interface CozeLoopClient extends AutoCloseable {
    * @param headers the map of headers (e.g. from an incoming HTTP request)
    * @return the extracted context
    */
-  Context extractContext(Map<String, String> headers);
-
-  /**
-   * Get the underlying OpenTelemetry Tracer.
-   *
-   * @return tracer instance
-   */
-  Tracer getTracer();
+  CozeLoopContext extractContext(Map<String, String> headers);
 
   // ========== Prompt Operations ==========
 
