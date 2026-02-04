@@ -2,6 +2,8 @@ package com.coze.loop.spring.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,9 @@ import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.spring.aop.CozeTraceAspect;
 import com.coze.loop.spring.config.CozeLoopProperties;
 import com.coze.loop.spring.test.OpenTelemetryTestUtils;
+import com.coze.loop.trace.CozeLoopSpan;
+
+import io.opentelemetry.context.Context;
 
 /**
  * Unit tests for CozeLoopAutoConfiguration with Spring Boot 3.x compatibility. Tests the
@@ -156,12 +161,47 @@ class CozeLoopAutoConfigurationSpringBoot3Test {
           }
 
           @Override
+          public void flush() {}
+
+          @Override
           public com.coze.loop.trace.CozeLoopSpan startSpan(String name) {
             return null;
           }
 
           @Override
           public com.coze.loop.trace.CozeLoopSpan startSpan(String name, String spanType) {
+            return null;
+          }
+
+          @Override
+          public CozeLoopSpan startSpan(String name, String spanType, String scene) {
+            return null;
+          }
+
+          @Override
+          public CozeLoopSpan startSpan(String name, String spanType, CozeLoopSpan parentSpan) {
+            return null;
+          }
+
+          @Override
+          public CozeLoopSpan startSpan(
+              String name, String spanType, CozeLoopSpan parentSpan, String scene) {
+            return null;
+          }
+
+          @Override
+          public CozeLoopSpan startSpan(String name, String spanType, Context parentContext) {
+            return null;
+          }
+
+          @Override
+          public CozeLoopSpan startSpan(
+              String name, String spanType, Context parentContext, String scene) {
+            return null;
+          }
+
+          @Override
+          public Context extractContext(Map<String, String> headers) {
             return null;
           }
 
