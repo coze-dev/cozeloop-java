@@ -8,12 +8,11 @@
     <parent>
         <groupId>com.coze</groupId>
         <artifactId>cozeloop-java</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>cozeloop-spring-boot-starter</artifactId>
-    <version>0.1.1</version>
     <packaging>jar</packaging>
 
     <name>CozeLoop Java SDK - Spring Boot Starter</name>
