@@ -37,8 +37,8 @@ public class PromptHubExample {
       System.exit(1);
     }
 
-    CozeLoopClient client =
-        new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+    // workspaceId and apiToken from env are set to client automatically
+    CozeLoopClient client = new CozeLoopClientBuilder().build();
 
     try {
       // 1. 创建根 span

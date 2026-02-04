@@ -29,8 +29,8 @@ public class ParentChildSpanExample {
       System.exit(1);
     }
 
-    CozeLoopClient client =
-        new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+    // workspaceId and apiToken from env are set to client automatically
+    CozeLoopClient client = new CozeLoopClientBuilder().build();
 
     try {
       // 1. 创建根 span（因为没有父 span，所以这是新 trace 的根 span）

@@ -10,14 +10,14 @@ Java SDK for interacting with [CozeLoop platform](https://loop.coze.cn).
   - Automatic context propagation across threads and async operations
   - Support for Events, Links, and Baggage
   - See [OpenTelemetry Integration Guide](docs/opentelemetry.md) for details
-- **Prompt Management**: Pull, cache, and format prompts
+- **Prompt Management**: Pull, cache, format and execute prompts
 - **AOP Annotation**: Declarative tracing with `@CozeTrace` annotation
 - **Spring Boot Integration**: Seamless integration with Spring Boot applications
 
 ## Requirements
 
 - Java 8+ (Java 11+ recommended)
-- Maven 3.6+ or Gradle 6.0+
+- Maven 3.6+
 
 ## Installation
 

@@ -26,21 +26,21 @@ public class ErrorHandlingExample {
     }
 
     // 示例1：客户端初始化错误处理
-    handleClientInitializationError(workspaceId, apiToken);
+    handleClientInitializationError();
 
     // 示例2：Span 操作错误处理
-    handleSpanOperationError(workspaceId, apiToken);
+    handleSpanOperationError();
 
     // 示例3：业务逻辑错误处理
-    handleBusinessLogicError(workspaceId, apiToken);
+    handleBusinessLogicError();
   }
 
   /** 示例1：客户端初始化错误处理 */
-  private static void handleClientInitializationError(String workspaceId, String apiToken) {
+  private static void handleClientInitializationError() {
     try {
       // 如果配置错误，build() 会抛出 CozeLoopException
-      CozeLoopClient client =
-          new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+      // workspaceId and apiToken from env are set to client automatically
+      CozeLoopClient client = new CozeLoopClientBuilder().build();
 
       System.out.println("客户端初始化成功");
       client.close();
@@ -55,10 +55,11 @@ public class ErrorHandlingExample {
   }
 
   /** 示例2：Span 操作错误处理 */
-  private static void handleSpanOperationError(String workspaceId, String apiToken) {
+  private static void handleSpanOperationError() {
     CozeLoopClient client = null;
     try {
-      client = new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+      // workspaceId and apiToken from env are set to client automatically
+      client = new CozeLoopClientBuilder().build();
 
       // 正常使用 span
       try (CozeLoopSpan span = client.startSpan("test_span", "custom")) {
@@ -87,10 +88,10 @@ public class ErrorHandlingExample {
   }
 
   /** 示例3：业务逻辑错误处理 */
-  private static void handleBusinessLogicError(String workspaceId, String apiToken) {
+  private static void handleBusinessLogicError() {
     CozeLoopClient client = null;
     try {
-      client = new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+      client = new CozeLoopClientBuilder().build();
 
       // 模拟业务逻辑
       try (CozeLoopSpan span = client.startSpan("business_operation", "custom")) {

@@ -34,21 +34,17 @@ public class OAuthJwtExample {
     }
 
     // 方式1：使用默认配置创建客户端（最简单的方式）
-    useDefaultClient(workspaceId, clientId, privateKey, publicKeyId);
+    useDefaultClient();
 
     // 方式2：使用自定义配置创建客户端
     // useCustomClient(workspaceId, clientId, privateKey, publicKeyId);
   }
 
   /** 使用默认配置创建客户端 */
-  private static void useDefaultClient(
-      String workspaceId, String clientId, String privateKey, String publicKeyId) {
+  private static void useDefaultClient() {
     // 创建客户端
-    CozeLoopClient client =
-        new CozeLoopClientBuilder()
-            .workspaceId(workspaceId)
-            .jwtOAuth(clientId, privateKey, publicKeyId)
-            .build();
+    // workspaceId and apiToken from env are set to client automatically
+    CozeLoopClient client = new CozeLoopClientBuilder().build();
 
     try {
       // 使用客户端创建 span
@@ -67,13 +63,10 @@ public class OAuthJwtExample {
   }
 
   /** 使用自定义配置创建客户端 */
-  private static void useCustomClient(
-      String workspaceId, String clientId, String privateKey, String publicKeyId) {
+  private static void useCustomClient() {
     // 创建带自定义配置的客户端
     CozeLoopClient client =
         new CozeLoopClientBuilder()
-            .workspaceId(workspaceId)
-            .jwtOAuth(clientId, privateKey, publicKeyId)
             // 可以设置自定义的 base URL（一般不需要）
             // .baseUrl("https://api.coze.cn")
             // 可以设置服务名称

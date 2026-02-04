@@ -6,7 +6,7 @@ import com.coze.loop.trace.CozeLoopTracerProvider;
 
 /** Main configuration for CozeLoop Client. */
 public class CozeLoopConfig {
-  private String workspaceId;
+  private String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
   private String serviceName = "cozeloop-java-app";
   private String baseUrl = "https://api.coze.cn";
 

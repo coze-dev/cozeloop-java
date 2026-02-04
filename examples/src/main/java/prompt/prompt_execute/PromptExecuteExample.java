@@ -37,8 +37,8 @@ public class PromptExecuteExample {
 
     // 1. Initialize client
     // Builder automatically picks up workspace-id and token from system properties
-    try (CozeLoopClient client =
-        new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build()) {
+    // workspaceId and apiToken from env are set to client automatically
+    try (CozeLoopClient client = new CozeLoopClientBuilder().build()) {
 
       // 2. Start a root span for the entire operation
       try (CozeLoopSpan span = client.startSpan("prompt_execute_demo", "custom")) {

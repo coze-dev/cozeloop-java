@@ -11,14 +11,14 @@ CozeLoop Java SDK 是一个用于与 [扣子罗盘平台](https://loop.coze.cn) 
   - 跨线程和异步操作的自动上下文传播
   - 支持 Events、Links 和 Baggage
   - 详见 [OpenTelemetry 集成指南](docs/opentelemetry.md)
-- **Prompt 管理**：拉取、缓存和格式化 prompts
+- **Prompt 管理**：拉取、缓存、格式化、执行 prompts
 - **AOP 注解**：使用 `@CozeTrace` 注解进行声明式追踪
 - **Spring Boot 集成**：与 Spring Boot 应用无缝集成
 
 ## 要求
 
 - Java 8+ (推荐 Java 11+)
-- Maven 3.6+ 或 Gradle 6.0+
+- Maven 3.6+
 
 ## 安装
 

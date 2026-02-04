@@ -28,17 +28,17 @@ public class PatExample {
     }
 
     // 方式1：使用默认配置创建客户端（最简单的方式）
-    useDefaultClient(workspaceId, apiToken);
+    useDefaultClient();
 
     // 方式2：使用自定义配置创建客户端
-    // useCustomClient(workspaceId, apiToken);
+    // useCustomClient();
   }
 
   /** 使用默认配置创建客户端 */
-  private static void useDefaultClient(String workspaceId, String apiToken) {
+  private static void useDefaultClient() {
     // 创建客户端
-    CozeLoopClient client =
-        new CozeLoopClientBuilder().workspaceId(workspaceId).tokenAuth(apiToken).build();
+    // workspaceId and apiToken from env are set to client automatically
+    CozeLoopClient client = new CozeLoopClientBuilder().build();
 
     try {
       // 使用客户端创建 span
@@ -57,12 +57,11 @@ public class PatExample {
   }
 
   /** 使用自定义配置创建客户端 */
-  private static void useCustomClient(String workspaceId, String apiToken) {
+  private static void useCustomClient() {
     // 创建带自定义配置的客户端
+    // workspaceId and apiToken from env are set to client automatically
     CozeLoopClient client =
         new CozeLoopClientBuilder()
-            .workspaceId(workspaceId)
-            .tokenAuth(apiToken)
             // 可以设置自定义的 base URL（一般不需要）
             // .baseUrl("https://api.coze.cn")
             // 可以设置服务名称
