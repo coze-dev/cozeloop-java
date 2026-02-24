@@ -37,7 +37,7 @@ public class AuthInterceptor implements Interceptor {
     Request.Builder builder =
         original
             .newBuilder()
-            .header("Authorization", authType + " " + token)
+            .header("Authorization", authType + token)
             .header("User-Agent", UserAgentUtils.getUserAgent())
             .header("X-Coze-Client-User-Agent", UserAgentUtils.getClientUserAgent());
 

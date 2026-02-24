@@ -15,7 +15,7 @@ class TokenAuthTest {
     TokenAuth auth = new TokenAuth("test-token");
 
     assertThat(auth.getToken()).isEqualTo("test-token");
-    assertThat(auth.getType()).isEqualTo("Bearer");
+    assertThat(auth.getType()).isEqualTo("Bearer ");
   }
 
   @Test
@@ -63,6 +63,6 @@ class TokenAuthTest {
   @Test
   void testGetType() {
     TokenAuth auth = new TokenAuth("token");
-    assertThat(auth.getType()).isEqualTo("Bearer");
+    assertThat(auth.getType()).isEqualTo("Bearer ");
   }
 }

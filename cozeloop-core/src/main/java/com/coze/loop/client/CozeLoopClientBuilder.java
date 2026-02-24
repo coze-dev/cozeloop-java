@@ -34,6 +34,11 @@ public class CozeLoopClientBuilder {
     if (serviceName != null) {
       this.config.setServiceName(serviceName);
     }
+    // Load trace path
+    String tracePath = System.getenv("COZELOOP_TRACE_PATH");
+    if (tracePath != null) {
+      this.config.setTracePath(tracePath);
+    }
     // Load auth token
     String token = System.getenv("COZELOOP_API_TOKEN");
     if (token != null) {
@@ -59,6 +64,12 @@ public class CozeLoopClientBuilder {
     String serviceName = ConfigUtils.get("cozeloop.service-name");
     if (serviceName != null) {
       this.config.setServiceName(serviceName);
+    }
+
+    // Load trace path
+    String tracePath = ConfigUtils.get("cozeloop.trace-path");
+    if (tracePath != null) {
+      this.config.setTracePath(tracePath);
     }
 
     // Load auth token
@@ -105,6 +116,17 @@ public class CozeLoopClientBuilder {
    */
   public CozeLoopClientBuilder baseUrl(String baseUrl) {
     config.setBaseUrl(baseUrl);
+    return this;
+  }
+
+  /**
+   * Set trace path (optional, default: "/v1/loop/opentelemetry/v1/traces").
+   *
+   * @param tracePath the trace path
+   * @return this builder
+   */
+  public CozeLoopClientBuilder tracePath(String tracePath) {
+    config.setTracePath(tracePath);
     return this;
   }
 

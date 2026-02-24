@@ -43,7 +43,7 @@ class AuthInterceptorTest {
   @Test
   void testInterceptAddsHeaders() throws IOException, InterruptedException {
     when(auth.getToken()).thenReturn("test-token-123");
-    when(auth.getType()).thenReturn("Bearer");
+    when(auth.getType()).thenReturn("Bearer ");
 
     mockWebServer.enqueue(new MockResponse().setResponseCode(200).setBody("OK"));
 

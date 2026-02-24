@@ -125,7 +125,7 @@ public class JWTOAuthAuth implements Auth {
 
   @Override
   public String getType() {
-    return AUTH_TYPE;
+    return AUTH_TYPE + " ";
   }
 
   /** Check if token should be refreshed. */
@@ -162,7 +162,7 @@ public class JWTOAuthAuth implements Auth {
       body.put("grant_type", GRANT_TYPE_JWT);
 
       Map<String, String> headers = new HashMap<>();
-      headers.put("Authorization", "Bearer " + jwt);
+      headers.put("Authorization", this.getType() + jwt);
 
       String responseJson = httpClient.post(baseUrl + TOKEN_PATH, body, headers);
       TokenResponse resp = JsonUtils.fromJson(responseJson, TokenResponse.class);

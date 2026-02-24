@@ -6,9 +6,12 @@ import com.coze.loop.trace.CozeLoopTracerProvider;
 
 /** Main configuration for CozeLoop Client. */
 public class CozeLoopConfig {
+  private static final String DEFAULT_TRACE_PATH = "/v1/loop/opentelemetry/v1/traces";
+
   private String workspaceId = System.getenv("COZELOOP_WORKSPACE_ID");
   private String serviceName = "cozeloop-java-app";
   private String baseUrl = "https://api.coze.cn";
+  private String tracePath = DEFAULT_TRACE_PATH;
 
   private HttpConfig httpConfig;
   private CozeLoopTracerProvider.TraceConfig traceConfig;
@@ -45,6 +48,14 @@ public class CozeLoopConfig {
     this.baseUrl = baseUrl;
   }
 
+  public String getTracePath() {
+    return tracePath;
+  }
+
+  public void setTracePath(String tracePath) {
+    this.tracePath = tracePath;
+  }
+
   public HttpConfig getHttpConfig() {
     return httpConfig;
   }
@@ -71,7 +82,7 @@ public class CozeLoopConfig {
 
   /** Get span endpoint URL. */
   public String getSpanEndpoint() {
-    return baseUrl + "/v1/loop/opentelemetry/v1/traces";
+    return baseUrl + tracePath;
   }
 
   /** Get prompt endpoint URL for fetching prompts (mget). */
@@ -108,6 +119,11 @@ public class CozeLoopConfig {
 
     public Builder baseUrl(String baseUrl) {
       config.baseUrl = baseUrl;
+      return this;
+    }
+
+    public Builder tracePath(String tracePath) {
+      config.tracePath = tracePath;
       return this;
     }
 

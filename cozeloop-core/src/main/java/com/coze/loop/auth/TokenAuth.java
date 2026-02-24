@@ -30,6 +30,6 @@ public class TokenAuth implements Auth {
 
   @Override
   public String getType() {
-    return AUTH_TYPE;
+    return AUTH_TYPE + " ";
   }
 }

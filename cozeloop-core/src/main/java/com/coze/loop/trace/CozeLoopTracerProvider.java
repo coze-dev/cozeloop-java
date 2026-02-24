@@ -104,7 +104,7 @@ public class CozeLoopTracerProvider {
         () -> {
           Map<String, String> headers = new HashMap<>();
           headers.put("cozeloop-workspace-id", workspaceId);
-          headers.put("Authorization", "Bearer " + auth.getToken());
+          headers.put("Authorization", auth.getType() + auth.getToken());
           headers.put("User-Agent", UserAgentUtils.getUserAgent());
           headers.put("X-Coze-Client-User-Agent", UserAgentUtils.getClientUserAgent());
 

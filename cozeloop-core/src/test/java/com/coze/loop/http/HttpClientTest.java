@@ -34,7 +34,7 @@ class HttpClientTest {
     mockWebServer.start();
 
     when(auth.getToken()).thenReturn("test-token");
-    when(auth.getType()).thenReturn("Bearer");
+    when(auth.getType()).thenReturn("Bearer ");
   }
 
   @AfterEach
