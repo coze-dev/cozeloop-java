@@ -129,14 +129,12 @@ public class CozeLoopSpan implements AutoCloseable {
    * Or you can use any struct you like.
    *
    * @param input the input object
-   * @return this span
    */
-  public CozeLoopSpan setInput(Object input) {
+  public void setInput(Object input) {
     if (input != null) {
       String inputStr = input instanceof String ? (String) input : JsonUtils.toJson(input);
       span.setAttribute(AttributeKey.stringKey(SpanKeys.COZELOOP_INPUT), inputStr);
     }
-    return this;
   }
 
   /**
@@ -145,117 +143,96 @@ public class CozeLoopSpan implements AutoCloseable {
    * Or you can use any struct you like.
    *
    * @param output the output object
-   * @return this span
    */
-  public CozeLoopSpan setOutput(Object output) {
+  public void setOutput(Object output) {
     if (output != null) {
       String outputStr = output instanceof String ? (String) output : JsonUtils.toJson(output);
       span.setAttribute(AttributeKey.stringKey(SpanKeys.COZELOOP_OUTPUT), outputStr);
     }
-    return this;
   }
 
   /**
    * Set the error for this span.
    *
    * @param error the error/exception
-   * @return this span
    */
-  public CozeLoopSpan setError(Throwable error) {
+  public void setError(Throwable error) {
     if (error != null) {
       span.setAttribute(SpanKeys.COZELOOP_ERROR, error.getMessage());
       span.recordException(error);
     }
-    return this;
   }
 
   /**
    * Set status code (0=OK, other=ERROR).
    *
    * @param statusCode the status code
-   * @return this span
    */
-  public CozeLoopSpan setStatusCode(int statusCode) {
+  public void setStatusCode(int statusCode) {
     span.setAttribute(SpanKeys.COZELOOP_STATUS_CODE, statusCode);
-    return this;
   }
 
   /**
    * Set user_id for this span.
    *
    * @param userId the user ID
-   * @return this span
    */
-  public CozeLoopSpan setUserID(String userId) {
+  public void setUserID(String userId) {
     if (userId != null) {
       span.setAttribute(SpanKeys.USER_ID, userId);
     }
-    return this;
   }
 
   /**
    * Set user_id baggage for this span and future child spans.
    *
    * @param userId the user ID
-   * @return this span
    */
-  public CozeLoopSpan setUserIDBaggage(String userId) {
-    return setBaggage(SpanKeys.USER_ID, userId);
+  public void setUserIDBaggage(String userId) {
+    setBaggage(SpanKeys.USER_ID, userId);
   }
 
   /**
    * Set message_id for this span.
    *
    * @param messageId the message ID
-   * @return this span
    */
-  public CozeLoopSpan setMessageID(String messageId) {
+  public void setMessageID(String messageId) {
     if (messageId != null) {
       span.setAttribute(SpanKeys.MESSAGING_MESSAGE_ID, messageId);
     }
-    return this;
   }
 
   /**
    * Set message_id baggage for this span and future child spans.
    *
    * @param messageId the message ID
-   * @return this span
    */
-  public CozeLoopSpan setMessageIDBaggage(String messageId) {
-    return setBaggage(SpanKeys.MESSAGING_MESSAGE_ID, messageId);
+  public void setMessageIDBaggage(String messageId) {
+    setBaggage(SpanKeys.MESSAGING_MESSAGE_ID, messageId);
   }
 
   /**
    * Set thread_id for this span.
    *
    * @param threadId the thread ID
-   * @return this span
    */
-  public CozeLoopSpan setThreadID(String threadId) {
+  public void setThreadID(String threadId) {
     if (threadId != null) {
       span.setAttribute(SpanKeys.SESSION_ID, threadId);
     }
-    return this;
   }
 
   /**
    * Set thread_id baggage for this span and future child spans.
    *
    * @param threadId the thread ID
-   * @return this span
    */
-  public CozeLoopSpan setThreadIDBaggage(String threadId) {
-    return setBaggage(SpanKeys.SESSION_ID, threadId);
+  public void setThreadIDBaggage(String threadId) {
+    setBaggage(SpanKeys.SESSION_ID, threadId);
   }
 
-  /**
-   * Set prompt ID or name.
-   *
-   * @param prompt the prompt identifier
-   * @return this span
-   */
-  // todo: implement after trace spec is defined
+  // todo：not implement set system tags
   //    public CozeLoopSpan setPrompt(String prompt) {
   //        if (prompt != null) {
   //            span.setAttribute("cozeloop.prompt", prompt);
@@ -267,190 +244,160 @@ public class CozeLoopSpan implements AutoCloseable {
    * Set model provider (e.g., "openai", "anthropic").
    *
    * @param provider the model provider
-   * @return this span
    */
-  public CozeLoopSpan setModelProvider(String provider) {
+  public void setModelProvider(String provider) {
     if (provider != null) {
       span.setAttribute(AttributeKey.stringKey(SpanKeys.GEN_AI_PROVIDER_NAME), provider);
     }
-    return this;
   }
 
   /**
    * Set model name.
    *
    * @param model the model name
-   * @return this span
    */
-  public CozeLoopSpan setModelName(String model) {
+  public void setModelName(String model) {
     if (model != null) {
       span.setAttribute(AttributeKey.stringKey(SpanKeys.LLM_MODEL_NAME), model);
     }
-    return this;
   }
 
   /**
    * Set model temperature.
    *
    * @param temperature the temperature
-   * @return this span
    */
-  public CozeLoopSpan setModelTemperature(Double temperature) {
+  public void setModelTemperature(Double temperature) {
     if (temperature != null) {
       span.setAttribute(AttributeKey.doubleKey(SpanKeys.GEN_AI_REQUEST_TEMPERATURE), temperature);
     }
-    return this;
   }
 
   /**
    * Set model top_p.
    *
    * @param topP the top_p
-   * @return this span
    */
-  public CozeLoopSpan setModelTopP(Double topP) {
+  public void setModelTopP(Double topP) {
     if (topP != null) {
       span.setAttribute(AttributeKey.doubleKey(SpanKeys.GEN_AI_REQUEST_TOP_P), topP);
     }
-    return this;
   }
 
   /**
    * Set model top_k.
    *
    * @param topK the top_k
-   * @return this span
    */
-  public CozeLoopSpan setModelTopK(Integer topK) {
+  public void setModelTopK(Integer topK) {
     if (topK != null) {
       span.setAttribute(AttributeKey.longKey(SpanKeys.GEN_AI_REQUEST_TOP_K), topK);
     }
-    return this;
   }
 
   /**
    * Set model max_tokens.
    *
    * @param maxTokens the max_tokens
-   * @return this span
    */
-  public CozeLoopSpan setModelMaxTokens(Integer maxTokens) {
+  public void setModelMaxTokens(Integer maxTokens) {
     if (maxTokens != null) {
       span.setAttribute(AttributeKey.longKey(SpanKeys.GEN_AI_REQUEST_MAX_TOKENS), maxTokens);
     }
-    return this;
   }
 
   /**
    * Set model frequency_penalty.
    *
    * @param frequencyPenalty the frequency_penalty
-   * @return this span
    */
-  public CozeLoopSpan setModelFrequencyPenalty(Double frequencyPenalty) {
+  public void setModelFrequencyPenalty(Double frequencyPenalty) {
     if (frequencyPenalty != null) {
       span.setAttribute(
           AttributeKey.doubleKey(SpanKeys.GEN_AI_REQUEST_FREQUENCY_PENALTY), frequencyPenalty);
     }
-    return this;
   }
 
   /**
    * Set model presence_penalty.
    *
    * @param presencePenalty the presence_penalty
-   * @return this span
    */
-  public CozeLoopSpan setModelPresencePenalty(Double presencePenalty) {
+  public void setModelPresencePenalty(Double presencePenalty) {
     if (presencePenalty != null) {
       span.setAttribute(
           AttributeKey.doubleKey(SpanKeys.GEN_AI_REQUEST_PRESENCE_PENALTY), presencePenalty);
     }
-    return this;
   }
 
   /**
    * Set model stop_sequences.
    *
    * @param stopSequences the stop_sequences
-   * @return this span
    */
-  public CozeLoopSpan setModelStopSequences(List<String> stopSequences) {
+  public void setModelStopSequences(List<String> stopSequences) {
     if (stopSequences != null && !stopSequences.isEmpty()) {
       span.setAttribute(
           AttributeKey.stringArrayKey(SpanKeys.GEN_AI_REQUEST_STOP_SEQUENCES), stopSequences);
     }
-    return this;
   }
 
   /**
    * Set input tokens.
    *
    * @param tokens the number of input tokens
-   * @return this span
    */
-  public CozeLoopSpan setInputTokens(long tokens) {
+  public void setInputTokens(long tokens) {
     span.setAttribute(AttributeKey.longKey(SpanKeys.GEN_AI_USAGE_INPUT_TOKENS), tokens);
-    return this;
   }
 
   /**
    * Set output tokens.
    *
    * @param tokens the number of output tokens
-   * @return this span
    */
-  public CozeLoopSpan setOutputTokens(long tokens) {
+  public void setOutputTokens(long tokens) {
     span.setAttribute(AttributeKey.longKey(SpanKeys.GEN_AI_USAGE_OUTPUT_TOKENS), tokens);
-    return this;
   }
 
   /**
    * Set start time (Not duration!) of first response for streaming calls.
    *
    * @param timestampUs the timestamp in microseconds
-   * @return this span
    */
-  public CozeLoopSpan setStartTimeFirstResp(long timestampUs) {
+  public void setStartTimeFirstResp(long timestampUs) {
     span.setAttribute(SpanKeys.COZELOOP_TIME_TO_FIRST_TOKEN, timestampUs);
-    return this;
   }
 
   /**
    * Set runtime data. Do not set unless you know what you are doing.
    *
    * @param runt Runtime
-   * @return this span
    */
-  public CozeLoopSpan setRuntime(Runtime runt) {
+  public void setRuntime(Runtime runt) {
     runtime = runt;
-    return this;
   }
 
   /**
    * Set service name for this span.
    *
    * @param serviceName the service name
-   * @return this span
    */
-  public CozeLoopSpan setServiceName(String serviceName) {
+  public void setServiceName(String serviceName) {
     if (serviceName != null) {
       span.setAttribute(SpanKeys.SERVICE_NAME, serviceName);
     }
-    return this;
   }
 
   /**
    * Set log ID for this span.
    *
    * @param logID the log ID
-   * @return this span
    */
-  public CozeLoopSpan setLogID(String logID) {
+  public void setLogID(String logID) {
     if (logID != null) {
       span.setAttribute(SpanKeys.COZELOOP_LOGID, logID);
     }
-    return this;
   }
 
   // todo：not implement set finish time
@@ -469,22 +416,19 @@ public class CozeLoopSpan implements AutoCloseable {
    * Set deployment environment (e.g., "prod", "staging").
    *
    * @param env the environment
-   * @return this span
    */
-  public CozeLoopSpan setDeploymentEnv(String env) {
+  public void setDeploymentEnv(String env) {
     if (env != null) {
       span.setAttribute(SpanKeys.DEPLOYMENT_ENV, env);
     }
-    return this;
   }
 
   /**
    * Set multiple tags/attributes at once.
    *
    * @param tags map of tags
-   * @return this span
    */
-  public CozeLoopSpan setTags(Map<String, String> tags) {
+  public void setTags(Map<String, String> tags) {
     if (tags != null) {
       tags.forEach(
           (k, v) -> {
@@ -493,7 +437,6 @@ public class CozeLoopSpan implements AutoCloseable {
             }
           });
     }
-    return this;
   }
 
   /**
@@ -502,9 +445,8 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param key the baggage key
    * @param value the baggage value
-   * @return this span
    */
-  public CozeLoopSpan setBaggage(String key, String value) {
+  public void setBaggage(String key, String value) {
     if (key != null && value != null) {
       // Also set as span attribute for visibility in the trace
       span.setAttribute(key, value);
@@ -513,16 +455,14 @@ public class CozeLoopSpan implements AutoCloseable {
       this.context = new CozeLoopContext(context.with(baggage));
       extraScopes.add(this.context.makeCurrent());
     }
-    return this;
   }
 
   /**
    * Set multiple baggage items.
    *
    * @param values map of baggage keys and values
-   * @return this span
    */
-  public CozeLoopSpan setBaggage(Map<String, String> values) {
+  public void setBaggage(Map<String, String> values) {
     if (values != null && !values.isEmpty()) {
       io.opentelemetry.api.baggage.BaggageBuilder builder =
           Baggage.fromContext(context).toBuilder();
@@ -535,7 +475,6 @@ public class CozeLoopSpan implements AutoCloseable {
       this.context = new CozeLoopContext(context.with(builder.build()));
       extraScopes.add(this.context.makeCurrent());
     }
-    return this;
   }
 
   /**
@@ -565,13 +504,11 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param key the attribute key
    * @param value the attribute value
-   * @return this span
    */
-  public CozeLoopSpan setTag(String key, String value) {
+  public void setTag(String key, String value) {
     if (key != null && value != null) {
       span.setAttribute(AttributeKey.stringKey(key), value);
     }
-    return this;
   }
 
   /**
@@ -579,13 +516,11 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param key the attribute key
    * @param value the attribute value
-   * @return this span
    */
-  public CozeLoopSpan setTag(String key, long value) {
+  public void setTag(String key, long value) {
     if (key != null) {
       span.setAttribute(AttributeKey.longKey(key), value);
     }
-    return this;
   }
 
   /**
@@ -593,13 +528,11 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param key the attribute key
    * @param value the attribute value
-   * @return this span
    */
-  public CozeLoopSpan setTag(String key, double value) {
+  public void setTag(String key, double value) {
     if (key != null) {
       span.setAttribute(AttributeKey.doubleKey(key), value);
     }
-    return this;
   }
 
   /**
@@ -607,13 +540,11 @@ public class CozeLoopSpan implements AutoCloseable {
    *
    * @param key the attribute key
    * @param value the attribute value
-   * @return this span
    */
-  public CozeLoopSpan setTag(String key, boolean value) {
+  public void setTag(String key, boolean value) {
     if (key != null) {
       span.setAttribute(AttributeKey.booleanKey(key), value);
     }
-    return this;
   }
 
   /**
