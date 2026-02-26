@@ -5,7 +5,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -13,6 +12,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 import com.coze.loop.client.CozeLoopClient;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.spring.annotation.CozeTrace;
 import com.coze.loop.trace.CozeLoopSpan;
 
@@ -20,7 +20,7 @@ import com.coze.loop.trace.CozeLoopSpan;
 @Aspect
 @Component
 public class CozeTraceAspect {
-  private static final Logger logger = LoggerFactory.getLogger(CozeTraceAspect.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(CozeTraceAspect.class);
   private final ExpressionParser parser = new SpelExpressionParser();
 
   private final CozeLoopClient client;

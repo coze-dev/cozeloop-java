@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+
 import com.coze.loop.internal.Constants;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.internal.JsonUtils;
 import com.coze.loop.spec.tracespec.Runtime;
 import com.coze.loop.spec.tracespec.SpanKeys;
@@ -50,11 +53,15 @@ import io.opentelemetry.context.propagation.ContextPropagators;
  * }</pre>
  */
 public class CozeLoopSpan implements AutoCloseable {
+  private static final Logger logger = CozeLoopLogger.getLogger(CozeLoopSpan.class);
+
   private final Span span;
   private final Scope scope;
   private final ContextPropagators propagators;
   private final String scene;
   private final List<Scope> extraScopes = new ArrayList<>();
+  private final FinishEventProcessor finishEventProcessor;
+  private final long startTimeNanos;
   private CozeLoopContext context;
   private Runtime runtime;
 
@@ -69,18 +76,22 @@ public class CozeLoopSpan implements AutoCloseable {
    * @param propagators the context propagators for header injection
    * @param context the context this span was created in
    * @param scene the scene identifier for this span
+   * @param finishEventProcessor the processor to handle span finish events
    */
   public CozeLoopSpan(
       Span span,
       Scope scope,
       ContextPropagators propagators,
       CozeLoopContext context,
-      String scene) {
+      String scene,
+      FinishEventProcessor finishEventProcessor) {
     this.span = span;
     this.scope = scope;
     this.propagators = propagators;
     this.context = context;
     this.scene = (scene == null || scene.isEmpty()) ? SpanValues.V_SCENE_CUSTOM : scene;
+    this.finishEventProcessor = finishEventProcessor;
+    this.startTimeNanos = System.nanoTime();
   }
 
   /**
@@ -628,11 +639,39 @@ public class CozeLoopSpan implements AutoCloseable {
     try {
       setSystemTag();
       span.end();
+      notifyFinishEvent();
     } finally {
       for (int i = extraScopes.size() - 1; i >= 0; i--) {
         extraScopes.get(i).close();
       }
       scope.close();
+    }
+  }
+
+  private void notifyFinishEvent() {
+    if (finishEventProcessor != null) {
+      try {
+        Span parentSpan = Span.fromContextOrNull(context);
+        boolean isRootSpan =
+            parentSpan == null
+                || !parentSpan.getSpanContext().isValid()
+                || parentSpan.getSpanContext().equals(span.getSpanContext());
+        long latencyMs = (System.nanoTime() - startTimeNanos) / 1_000_000;
+
+        FinishEventInfo.FinishEventInfoExtra extra =
+            new FinishEventInfo.FinishEventInfoExtra(isRootSpan, latencyMs);
+
+        FinishEventInfo info =
+            FinishEventInfo.builder()
+                .eventType(SpanFinishEvent.SPAN_QUEUE_ENTRY_RATE)
+                .isEventFail(false)
+                .itemNum(1)
+                .extraParams(extra)
+                .build();
+        finishEventProcessor.process(info);
+      } catch (Exception e) {
+        logger.warn("FinishEventProcessor error", e);
+      }
     }
   }
 

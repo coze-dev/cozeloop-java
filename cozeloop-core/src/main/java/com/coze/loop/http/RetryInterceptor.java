@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.coze.loop.internal.CozeLoopLogger;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -12,7 +13,7 @@ import okhttp3.Response;
 
 /** Interceptor to retry failed requests with exponential backoff. */
 public class RetryInterceptor implements Interceptor {
-  private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(RetryInterceptor.class);
   private static final int INITIAL_BACKOFF_MS = 100;
   private static final int MAX_BACKOFF_MS = 10000;
 

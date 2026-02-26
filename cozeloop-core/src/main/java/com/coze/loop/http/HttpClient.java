@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.auth.Auth;
 import com.coze.loop.exception.CozeLoopException;
 import com.coze.loop.exception.ErrorCode;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.internal.JsonUtils;
 
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -16,7 +16,7 @@ import okhttp3.*;
 
 /** HTTP client based on OkHttp. */
 public class HttpClient {
-  private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(HttpClient.class);
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 

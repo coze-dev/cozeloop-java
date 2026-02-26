@@ -6,9 +6,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.auth.Auth;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.internal.UserAgentUtils;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
@@ -18,7 +18,6 @@ import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -38,7 +37,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  *   <li><b>Resource</b>: Defines service metadata (service name, workspace ID)
  *   <li><b>SdkTracerProvider</b>: Manages Tracer instances and SpanProcessors
  *   <li><b>BatchSpanProcessor</b>: Handles batching (configurable batch size)
- *   <li><b>OtlpHttpSpanExporter</b>: Standard OTLP/HTTP exporter for remote export
+ *   <li><b>CozeLoopSpanExporter</b>: Custom OTLP/HTTP exporter with X-TT-LogID support
  * </ul>
  *
  * <p><b>Context Propagation:</b> The TracerProvider automatically handles OpenTelemetry context
@@ -71,14 +70,15 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  * @see <a href="https://opentelemetry.io/docs/instrumentation/java/">OpenTelemetry Java
  *     Documentation</a>
  * @see BatchSpanProcessor
- * @see OtlpHttpSpanExporter
+ * @see CozeLoopSpanExporter
  */
 public class CozeLoopTracerProvider {
-  private static final Logger logger = LoggerFactory.getLogger(CozeLoopTracerProvider.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(CozeLoopTracerProvider.class);
 
   private final SdkTracerProvider sdkTracerProvider;
   private final OpenTelemetrySdk openTelemetrySdk;
   private final SpanExporter spanExporter;
+  private final FinishEventProcessor finishEventProcessor;
 
   /**
    * Private constructor. Use {@link #create} to create instances.
@@ -86,7 +86,7 @@ public class CozeLoopTracerProvider {
    * <p>This constructor initializes the OpenTelemetry SDK with:
    *
    * <ol>
-   *   <li><b>OtlpHttpSpanExporter</b>: Standard OTLP/HTTP exporter
+   *   <li><b>CozeLoopSpanExporter</b>: Custom OTLP/HTTP exporter
    *   <li><b>Resource</b>: Service metadata including service name and workspace ID
    *   <li><b>BatchSpanProcessor</b>: Batching processor with configurable queue size, batch size,
    *       and timing
@@ -99,7 +99,7 @@ public class CozeLoopTracerProvider {
    */
   private CozeLoopTracerProvider(
       Auth auth, String spanEndpoint, String workspaceId, String serviceName, TraceConfig config) {
-    // Step 1: Create OtlpHttpSpanExporter
+    this.finishEventProcessor = buildFinishEventProcessor(config);
     Supplier<Map<String, String>> authHeaders =
         () -> {
           Map<String, String> headers = new HashMap<>();
@@ -120,7 +120,11 @@ public class CozeLoopTracerProvider {
           return headers;
         };
     this.spanExporter =
-        OtlpHttpSpanExporter.builder().setEndpoint(spanEndpoint).setHeaders(authHeaders).build();
+        CozeLoopSpanExporter.builder()
+            .setEndpoint(spanEndpoint)
+            .setHeaders(authHeaders)
+            .setFinishEventProcessor(this.finishEventProcessor)
+            .build();
 
     // Step 2: Create Resource with service metadata
     Resource resource =
@@ -175,13 +179,30 @@ public class CozeLoopTracerProvider {
         spanEndpoint);
   }
 
+  private FinishEventProcessor buildFinishEventProcessor(TraceConfig config) {
+    FinishEventProcessor customProcessor = config.getFinishEventProcessor();
+    if (customProcessor != null) {
+      return info -> {
+        FinishEventProcessor.DEFAULT.process(info);
+        customProcessor.process(info);
+      };
+    } else {
+      return FinishEventProcessor.DEFAULT;
+    }
+  }
+
+  public FinishEventProcessor getFinishEventProcessor() {
+    return finishEventProcessor;
+  }
+
   /**
    * Create a new CozeLoopTracerProvider.
    *
+   * @param auth the authentication provider
    * @param spanEndpoint the span upload endpoint
    * @param workspaceId the workspace ID
    * @param serviceName the service name
-   * @param config the trace configuration
+   * @param config the trace configuration (includes optional FinishEventProcessor)
    * @return CozeLoopTracerProvider instance
    */
   public static CozeLoopTracerProvider create(
@@ -326,6 +347,9 @@ public class CozeLoopTracerProvider {
     /** Timeout for export operations in milliseconds (default: 30000) */
     private long exportTimeoutMillis = 30000;
 
+    /** Finish event processor for span finish events */
+    private FinishEventProcessor finishEventProcessor;
+
     public int getMaxQueueSize() {
       return maxQueueSize;
     }
@@ -358,6 +382,14 @@ public class CozeLoopTracerProvider {
       this.exportTimeoutMillis = exportTimeoutMillis;
     }
 
+    public FinishEventProcessor getFinishEventProcessor() {
+      return finishEventProcessor;
+    }
+
+    public void setFinishEventProcessor(FinishEventProcessor finishEventProcessor) {
+      this.finishEventProcessor = finishEventProcessor;
+    }
+
     public static Builder builder() {
       return new Builder();
     }
@@ -382,6 +414,11 @@ public class CozeLoopTracerProvider {
 
       public Builder exportTimeoutMillis(long millis) {
         config.exportTimeoutMillis = millis;
+        return this;
+      }
+
+      public Builder finishEventProcessor(FinishEventProcessor processor) {
+        config.finishEventProcessor = processor;
         return this;
       }
 

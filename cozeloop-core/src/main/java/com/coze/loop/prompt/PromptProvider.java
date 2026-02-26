@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.entity.ContentPart;
@@ -19,6 +18,7 @@ import com.coze.loop.entity.TokenUsage;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.exception.PromptException;
 import com.coze.loop.http.HttpClient;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.internal.JsonUtils;
 import com.coze.loop.internal.ValidationUtils;
 import com.coze.loop.spec.tracespec.SpanValues;
@@ -33,7 +33,7 @@ import okhttp3.ResponseBody;
 
 /** Provider for prompt operations: fetch, cache, and format. */
 public class PromptProvider {
-  private static final Logger logger = LoggerFactory.getLogger(PromptProvider.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(PromptProvider.class);
 
   private final HttpClient httpClient;
   private final String promptEndpoint;

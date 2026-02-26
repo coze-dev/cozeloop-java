@@ -11,6 +11,7 @@ import com.coze.loop.internal.ConfigUtils;
 import com.coze.loop.internal.ValidationUtils;
 import com.coze.loop.prompt.PromptProvider;
 import com.coze.loop.trace.CozeLoopTracerProvider;
+import com.coze.loop.trace.FinishEventProcessor;
 
 /** Builder for creating CozeLoopClient instances. */
 public class CozeLoopClientBuilder {
@@ -173,6 +174,17 @@ public class CozeLoopClientBuilder {
    */
   public CozeLoopClientBuilder auth(Auth auth) {
     this.auth = auth;
+    return this;
+  }
+
+  /**
+   * Set finish event processor for span finish events.
+   *
+   * @param processor the finish event processor
+   * @return this builder
+   */
+  public CozeLoopClientBuilder finishEventProcessor(FinishEventProcessor processor) {
+    config.getTraceConfig().setFinishEventProcessor(processor);
     return this;
   }
 

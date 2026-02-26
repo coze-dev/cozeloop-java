@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.entity.ExecuteParam;
 import com.coze.loop.entity.ExecuteResult;
@@ -15,6 +14,7 @@ import com.coze.loop.exception.CozeLoopException;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.http.HttpClient;
 import com.coze.loop.internal.Constants;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.prompt.GetPromptParam;
 import com.coze.loop.prompt.PromptProvider;
 import com.coze.loop.spec.tracespec.SpanKeys;
@@ -34,7 +34,7 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 
 /** Implementation of CozeLoopClient. */
 public class CozeLoopClientImpl implements CozeLoopClient {
-  private static final Logger logger = LoggerFactory.getLogger(CozeLoopClientImpl.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(CozeLoopClientImpl.class);
   private static final String INSTRUMENTATION_NAME = "cozeloop-java-sdk";
   private static final String INSTRUMENTATION_VERSION = Constants.Version;
 
@@ -137,7 +137,12 @@ public class CozeLoopClientImpl implements CozeLoopClient {
     Scope scope = finalContext.makeCurrent();
 
     return new CozeLoopSpan(
-        span, scope, tracerProvider.getPropagators(), new CozeLoopContext(finalContext), scene);
+        span,
+        scope,
+        tracerProvider.getPropagators(),
+        new CozeLoopContext(finalContext),
+        scene,
+        tracerProvider.getFinishEventProcessor());
   }
 
   @Override

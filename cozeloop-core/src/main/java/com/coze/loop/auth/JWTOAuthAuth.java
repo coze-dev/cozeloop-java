@@ -11,11 +11,11 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.exception.AuthException;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.http.HttpClient;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.internal.JsonUtils;
 import com.coze.loop.internal.ValidationUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,7 +28,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
  * automatically refreshes tokens.
  */
 public class JWTOAuthAuth implements Auth {
-  private static final Logger logger = LoggerFactory.getLogger(JWTOAuthAuth.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(JWTOAuthAuth.class);
   private static final String AUTH_TYPE = "Bearer";
   private static final String GRANT_TYPE_JWT = "urn:ietf:params:oauth:grant-type:jwt-bearer";
   private static final String TOKEN_PATH = "/api/permission/oauth2/token";

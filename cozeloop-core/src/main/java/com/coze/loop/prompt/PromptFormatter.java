@@ -5,15 +5,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.entity.*;
 import com.coze.loop.exception.ErrorCode;
 import com.coze.loop.exception.PromptException;
+import com.coze.loop.internal.CozeLoopLogger;
 
 /** Formatter for prompt messages. Handles template rendering and variable substitution. */
 public class PromptFormatter {
-  private static final Logger logger = LoggerFactory.getLogger(PromptFormatter.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(PromptFormatter.class);
 
   private final TemplateEngine normalEngine;
   private final TemplateEngine jinja2Engine;

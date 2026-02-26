@@ -5,15 +5,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.coze.loop.entity.Prompt;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /** Cache for prompts using Caffeine. Supports LRU eviction and automatic refresh. */
 public class PromptCache {
-  private static final Logger logger = LoggerFactory.getLogger(PromptCache.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(PromptCache.class);
 
   private final AsyncLoadingCache<String, Prompt> cache;
 

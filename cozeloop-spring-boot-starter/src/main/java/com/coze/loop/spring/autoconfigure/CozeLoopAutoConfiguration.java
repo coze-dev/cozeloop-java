@@ -1,7 +1,6 @@
 package com.coze.loop.spring.autoconfigure;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +12,7 @@ import com.coze.loop.client.CozeLoopClient;
 import com.coze.loop.client.CozeLoopClientBuilder;
 import com.coze.loop.config.CozeLoopConfig;
 import com.coze.loop.http.HttpConfig;
+import com.coze.loop.internal.CozeLoopLogger;
 import com.coze.loop.prompt.PromptCache;
 import com.coze.loop.spring.aop.CozeTraceAspect;
 import com.coze.loop.spring.config.CozeLoopProperties;
@@ -29,7 +29,7 @@ import com.coze.loop.trace.CozeLoopTracerProvider;
 @EnableConfigurationProperties(CozeLoopProperties.class)
 @ConditionalOnProperty(prefix = "cozeloop", name = "workspace-id")
 public class CozeLoopAutoConfiguration {
-  private static final Logger logger = LoggerFactory.getLogger(CozeLoopAutoConfiguration.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(CozeLoopAutoConfiguration.class);
 
   /** Create CozeLoopClient bean. */
   @Bean

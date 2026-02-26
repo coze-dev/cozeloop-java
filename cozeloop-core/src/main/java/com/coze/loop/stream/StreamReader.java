@@ -4,7 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.coze.loop.internal.CozeLoopLogger;
 
 /**
  * Stream reader for reading typed objects from an SSE stream.
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> the type of objects to read
  */
 public class StreamReader<T> implements Closeable {
-  private static final Logger logger = LoggerFactory.getLogger(StreamReader.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(StreamReader.class);
 
   private final SSEDecoder decoder;
   private final SSEParser<T> parser;

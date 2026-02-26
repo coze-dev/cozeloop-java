@@ -9,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.coze.loop.internal.CozeLoopLogger;
 
 /** Decoder for Server-Sent Events (SSE). Parses SSE format from an InputStream. */
 public class SSEDecoder {
-  private static final Logger logger = LoggerFactory.getLogger(SSEDecoder.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(SSEDecoder.class);
 
   private final BufferedReader reader;
 

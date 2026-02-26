@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.coze</groupId>
         <artifactId>cozeloop-java</artifactId>
-        <version>0.1.3</version>
+        <version>0.1.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

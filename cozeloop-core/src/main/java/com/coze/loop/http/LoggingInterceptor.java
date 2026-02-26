@@ -3,7 +3,8 @@ package com.coze.loop.http;
 import java.io.IOException;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.coze.loop.internal.CozeLoopLogger;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -12,7 +13,7 @@ import okhttp3.ResponseBody;
 
 /** Interceptor to log HTTP requests and responses. */
 public class LoggingInterceptor implements Interceptor {
-  private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
+  private static final Logger logger = CozeLoopLogger.getLogger(LoggingInterceptor.class);
 
   @Override
   public Response intercept(Chain chain) throws IOException {

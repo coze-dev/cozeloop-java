@@ -103,7 +103,6 @@ public class TransferBetweenServicesExample {
       // This child span will automatically inherit Baggage from Service A
       // because it is started within the scope of service_b_operation.
       try (CozeLoopSpan child = client.startSpan("service_b_internal_logic", "logic")) {
-        child.setUserID("user_12345");
         child.setMessageID("msg_999");
         System.out.println(
             "Service B: Executing internal logic (Baggage inherited: "
