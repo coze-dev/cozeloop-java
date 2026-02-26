@@ -35,7 +35,13 @@ public class SimpleTraceExample {
     }
 
     // workspaceId and apiToken from env are set to client automatically
-    CozeLoopClient client = new CozeLoopClientBuilder().build();
+    CozeLoopClient client =
+        new CozeLoopClientBuilder()
+            .spanExportTimeout(3000) // export timeout in milliseconds, default is 3000
+            .spanExportScheduleDelay(1000) // schedule delay in milliseconds, default is 1000
+            .maxSpanExportQueueSize(1024) // maximum queue size, default is 1024
+            .maxSpanExportBatchSize(100) // maximum batch size, default is 100
+            .build();
 
     try {
       // 1. 创建根 span

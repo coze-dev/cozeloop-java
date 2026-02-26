@@ -335,17 +335,17 @@ public class CozeLoopTracerProvider {
    * </ul>
    */
   public static class TraceConfig {
-    /** Maximum number of spans in the queue before dropping (default: 2048) */
-    private int maxQueueSize = 2048;
+    /** Maximum number of spans in the queue before dropping (default: 1024) */
+    private int maxQueueSize = 1024;
 
-    /** Maximum spans per batch sent to exporter (default: 512) */
-    private int batchSize = 512;
+    /** Maximum spans per batch sent to exporter (default: 100) */
+    private int batchSize = 100;
 
-    /** Delay between automatic batch exports in milliseconds (default: 5000) */
-    private long scheduleDelayMillis = 5000;
+    /** Delay between automatic batch exports in milliseconds (default: 1000) */
+    private long scheduleDelayMillis = 1000;
 
-    /** Timeout for export operations in milliseconds (default: 30000) */
-    private long exportTimeoutMillis = 30000;
+    /** Timeout for export operations in milliseconds (default: 3000) */
+    private long exportTimeoutMillis = 3000;
 
     /** Finish event processor for span finish events */
     private FinishEventProcessor finishEventProcessor;

@@ -189,6 +189,53 @@ public class CozeLoopClientBuilder {
   }
 
   /**
+   * Set maximum span queue size (default: 1024). When the queue is full, new spans will be dropped.
+   *
+   * @param size maximum queue size
+   * @return this builder
+   */
+  public CozeLoopClientBuilder maxSpanExportQueueSize(int size) {
+    config.getTraceConfig().setMaxQueueSize(size);
+    return this;
+  }
+
+  /**
+   * Set maximum span export batch size (default: 100). This is the maximum number of spans sent to
+   * the exporter in a single batch.
+   *
+   * @param size maximum batch size
+   * @return this builder
+   */
+  public CozeLoopClientBuilder maxSpanExportBatchSize(int size) {
+    config.getTraceConfig().setBatchSize(size);
+    return this;
+  }
+
+  /**
+   * Set span exporter timeout in milliseconds (default: 3000). This is the maximum time to wait for
+   * the export to complete.
+   *
+   * @param timeoutMillis timeout in milliseconds
+   * @return this builder
+   */
+  public CozeLoopClientBuilder spanExportTimeout(long timeoutMillis) {
+    config.getTraceConfig().setExportTimeoutMillis(timeoutMillis);
+    return this;
+  }
+
+  /**
+   * Set schedule delay between batch exports in milliseconds (default: 1000). This is the time
+   * interval between automatic batch exports.
+   *
+   * @param delayMillis delay in milliseconds
+   * @return this builder
+   */
+  public CozeLoopClientBuilder spanExportScheduleDelay(long delayMillis) {
+    config.getTraceConfig().setScheduleDelayMillis(delayMillis);
+    return this;
+  }
+
+  /**
    * Build the CozeLoopClient instance.
    *
    * @return CozeLoopClient instance
