@@ -77,8 +77,8 @@ public class AnnotationTraceExample {
       System.out.println("Processing simple trace: " + input);
     }
 
-    /** Customization: Specify span name, type, and capture input/output. */
-    @CozeTrace(name = "llm_chat_v1", spanType = "model", captureArgs = true, captureReturn = true)
+    /** Customization: Specify span name, type, and not capture input/output. */
+    @CozeTrace(name = "llm_chat_v1", spanType = "model", captureArgs = false, captureReturn = false)
     public String customTrace(String model, String query) {
       System.out.println("Processing custom trace with model: " + model);
       return "Response for " + query;

@@ -32,7 +32,7 @@ public @interface CozeTrace {
    *
    * @return true to capture arguments
    */
-  boolean captureArgs() default false;
+  boolean captureArgs() default true;
 
   /**
    * Whether to capture method return value as span output. If true, the return value will be
@@ -40,7 +40,7 @@ public @interface CozeTrace {
    *
    * @return true to capture return value
    */
-  boolean captureReturn() default false;
+  boolean captureReturn() default true;
 
   /**
    * SpEL expression to extract input from method context. Available variables: #args (argument
